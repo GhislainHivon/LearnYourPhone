@@ -1,0 +1,3 @@
+title=Learn your phone
+author=Ghislain Hivon
+orientation=landscape
