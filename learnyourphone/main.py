@@ -2,10 +2,10 @@
 
 """Main for the Learn Your Phone app"""
 
-# To check : https://mail.python.org/pipermail/python-list/2008-February/494675.html
-# And kivy accept hsv color 
+# To check :
+# https://mail.python.org/pipermail/python-list/2008-February/494675.html
+# And kivy accept hsv color
 # http://kivy.org/docs/api-kivy.graphics.html#kivy.graphics.Color
-
 from __future__ import unicode_literals
 
 from kivy.app import App
@@ -14,24 +14,22 @@ from kivy.uix.textinput import TextInput
 SETTINGS_SECTION = "Learn your phone"
 SETTINGS_KEY_PHONE = "number"
 
+
 class ValidatingTextinput(TextInput):
-    """A self validating textinput: refusing all text that is not expecting"""
+    """A self validating textinput: refusing everything that is not  the expected text"""
 
     def __init__(self, **kwargs):
-        self.expecting_text = kwargs.pop("expecting")
-        self.last_text = kwargs.get("text", "")
+        self.expected_text = kwargs.pop("expecting")
         super(ValidatingTextinput, self).__init__(**kwargs)
-        self.bind(text=self.on_text)
 
-    def on_text(self, instance, value):
-        if value:
-            if value == self.expecting_text:
-                print "good value"
-            else:
-                print "not good value"
-                self.text = self.last_text
-        self.last_text = self.text
-        
+    def insert_text(self, substring, from_undo=False):
+        if substring == self.expected_text:
+            value = super(ValidatingTextinput, self).insert_text(substring, from_undo)
+            self.readonly = True  # So the good text will not change
+            return value
+        else:
+            return super(ValidatingTextinput, self).insert_text("", from_undo)
+
 
 class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
