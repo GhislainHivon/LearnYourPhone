@@ -45,15 +45,19 @@ class LearnYourPhoneApp(App):
     @property
     def hint_layout(self):
         return self.root.ids.hint_layout
-    
+
     def initialize_phone_guessing(self, phone_number):
         self.answer_layout.clear_widgets()
         self.hint_layout.clear_widgets()
         if phone_number:
             self.spacer.text = ""
             for digit in phone_number:
+                #input_type=number, tel ?
                 digit_input = ValidatingTextinput(expecting=digit,
-                                                  multiline=False)
+                                                  multiline=False,
+                                                  size_hint=(1, None),
+                                                  font_size=22,
+                                                  focus=True)
                 self.answer_layout.add_widget(digit_input)
 
         else:
@@ -68,7 +72,7 @@ class LearnYourPhoneApp(App):
         config.setdefaults(SETTINGS_SECTION,
                            {SETTINGS_KEY_PHONE: ""})
         return super(LearnYourPhoneApp, self).build_config(config)
-    
+
     def build_settings(self, settings):
         jsondata = """[
                        {{"type": "string",
