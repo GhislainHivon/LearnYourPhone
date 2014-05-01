@@ -21,6 +21,8 @@ from kivy.uix.textinput import TextInput
 SETTINGS_SECTION = "Learn your phone"
 SETTINGS_KEY_PHONE = "number"
 
+RANDOM_SORT_KEY = lambda _value: random.random()
+
 
 class ValidatingTextinput(TextInput):
     """A self validating textinput: refusing everything that is not  the expected text"""
@@ -63,6 +65,25 @@ class LearnYourPhoneApp(App):
     def hint_layout(self):
         return self.root.ids.hint_layout
     
+    def add_answer_input(self, answer_digit):
+        answer_input = ValidatingTextinput(expecting=answer_digit,
+                                          multiline=False,
+                                          size_hint=(1, None),
+                                          font_size=22,
+                                          focus=True)
+        if answer_digit.isdigit():
+            answer_input.input_type = "number"
+        else:
+            answer_input.input_type = "text"
+        answer_input.bind(on_succeed=self.input_succeed)
+        self.needed_answers.append(answer_input)
+        self.answer_layout.add_widget(answer_input)
+
+    def add_hint_uix(self, hint_digit):
+        hint_uix = Label(text=hint_digit,
+                         size_hint=(1,None))
+        self.hint_layout.add_widget(hint_uix)
+
     def initialize_phone_guessing(self, phone_number):
         self.answer_layout.clear_widgets()
         self.hint_layout.clear_widgets()
@@ -70,22 +91,12 @@ class LearnYourPhoneApp(App):
         self.needed_answers = []
 
         if phone_number:
-            self.spacer.text = ""
+            self.spacer.text = "Guess your phone number"
             for answer_digit in phone_number:
-                #input_type=number, tel ?
-                answer_input = ValidatingTextinput(expecting=answer_digit,
-                                                  multiline=False,
-                                                  size_hint=(1, None),
-                                                  font_size=22,
-                                                  focus=True)
-                self.needed_answers.append(answer_input)
-                answer_input.bind(on_succeed=self.input_succeed)
-                self.answer_layout.add_widget(answer_input)
+                self.add_answer_input(answer_digit)
                 
-            for hint_digit in sorted(phone_number, key=lambda _digit: random.random()):
-                hint_uix = Label(text=hint_digit,
-                                 size_hint=(1,None))
-                self.hint_layout.add_widget(hint_uix)
+            for hint_digit in sorted(phone_number, key=RANDOM_SORT_KEY):
+                self.add_hint_uix(hint_digit)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
