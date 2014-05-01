@@ -6,12 +6,16 @@
 # https://mail.python.org/pipermail/python-list/2008-February/494675.html
 # And kivy accept hsv color
 # http://kivy.org/docs/api-kivy.graphics.html#kivy.graphics.Color
+
 from __future__ import unicode_literals
+
+import random
 
 from kivy.app import App
 from kivy.core.audio import SoundLoader
-from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 
 
 SETTINGS_SECTION = "Learn your phone"
@@ -67,17 +71,21 @@ class LearnYourPhoneApp(App):
 
         if phone_number:
             self.spacer.text = ""
-            for digit in phone_number:
+            for answer_digit in phone_number:
                 #input_type=number, tel ?
-                digit_input = ValidatingTextinput(expecting=digit,
+                answer_input = ValidatingTextinput(expecting=answer_digit,
                                                   multiline=False,
                                                   size_hint=(1, None),
                                                   font_size=22,
                                                   focus=True)
-                self.needed_answers.append(digit_input)
-                digit_input.bind(on_succeed=self.input_succeed)
-                self.answer_layout.add_widget(digit_input)
-
+                self.needed_answers.append(answer_input)
+                answer_input.bind(on_succeed=self.input_succeed)
+                self.answer_layout.add_widget(answer_input)
+                
+            for hint_digit in sorted(phone_number, key=lambda _digit: random.random()):
+                hint_uix = Label(text=hint_digit,
+                                 size_hint=(1,None))
+                self.hint_layout.add_widget(hint_uix)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
