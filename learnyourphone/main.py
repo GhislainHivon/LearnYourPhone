@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 from kivy.app import App
 from kivy.core.audio import SoundLoader
 from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
 
 
 SETTINGS_SECTION = "Learn your phone"
@@ -44,6 +45,7 @@ class LearnYourPhoneApp(App):
 
     needed_answers = None
     victory_sound = None
+    replay_button = None
 
     @property
     def spacer(self):
@@ -56,18 +58,7 @@ class LearnYourPhoneApp(App):
     @property
     def hint_layout(self):
         return self.root.ids.hint_layout
-
-    def input_succeed(self, instance, *args):
-        print type(instance), instance
-        print [(type(x), x) for x in args]
-        if instance in self.needed_answers:
-            self.needed_answers.remove(instance)
-
-        if not self.needed_answers:
-            #Throw victory parade
-            if self.victory_sound:
-                self.victory_sound.play()
-
+    
     def initialize_phone_guessing(self, phone_number):
         self.answer_layout.clear_widgets()
         self.hint_layout.clear_widgets()
@@ -90,9 +81,33 @@ class LearnYourPhoneApp(App):
         else:
             self.spacer.text = "Set the phone number in the settings."
 
-    def build(self):
+    def initialize_from_config(self):
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
         self.initialize_phone_guessing(phone_number)
+
+    def replay(self, _instance):
+        self.initialize_from_config()
+        self.replay_button = None
+
+    def generate_replay_button(self):
+        self.replay_button = Button(text="replay", size_hint=(None, None))
+        self.replay_button.bind(on_press=self.replay)
+        self.hint_layout.clear_widgets()
+        self.hint_layout.add_widget(self.replay_button)
+
+    def input_succeed(self, instance, *args):
+        if instance in self.needed_answers:
+            self.needed_answers.remove(instance)
+
+        if not self.needed_answers:
+            #Throw victory parade
+            self.generate_replay_button()
+            if self.victory_sound:
+                self.victory_sound.play()
+            
+
+    def build(self):
+        self.initialize_from_config()
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
         return super(LearnYourPhoneApp, self).build()
 
