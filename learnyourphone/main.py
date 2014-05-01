@@ -9,10 +9,13 @@
 
 from __future__ import unicode_literals
 
+import colorsys
+from fractions import Fraction
 import random
 
 from kivy.app import App
 from kivy.core.audio import SoundLoader
+from kivy.graphics import Color
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -22,6 +25,8 @@ SETTINGS_SECTION = "Learn your phone"
 SETTINGS_KEY_PHONE = "number"
 
 RANDOM_SORT_KEY = lambda _value: random.random()
+
+RGBA_ALPHA = [1]
 
 
 class ValidatingTextinput(TextInput):
@@ -65,23 +70,26 @@ class LearnYourPhoneApp(App):
     def hint_layout(self):
         return self.root.ids.hint_layout
     
-    def add_answer_input(self, answer_digit):
+    def add_answer_input(self, answer_digit, h_color):
         answer_input = ValidatingTextinput(expecting=answer_digit,
                                           multiline=False,
                                           size_hint=(1, None),
-                                          font_size=22,
+                                          font_size=30,
                                           focus=True)
         if answer_digit.isdigit():
             answer_input.input_type = "number"
         else:
             answer_input.input_type = "text"
+        answer_input.background_color = list(colorsys.hsv_to_rgb(h_color, .7, .7)) + RGBA_ALPHA
         answer_input.bind(on_succeed=self.input_succeed)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
-    def add_hint_uix(self, hint_digit):
+    def add_hint_uix(self, hint_digit, h_color):
         hint_uix = Label(text=hint_digit,
-                         size_hint=(1,None))
+                         size_hint=(1,None),
+                         font_size=30)
+        hint_uix.color = list(colorsys.hsv_to_rgb(h_color, 1, .7)) + RGBA_ALPHA
         self.hint_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
@@ -92,11 +100,14 @@ class LearnYourPhoneApp(App):
 
         if phone_number:
             self.spacer.text = "Guess your phone number"
+            unique_digits = sorted(set(phone_number))
             for answer_digit in phone_number:
-                self.add_answer_input(answer_digit)
+                h_color = Fraction(unique_digits.index(answer_digit), len(unique_digits))
+                self.add_answer_input(answer_digit, h_color)
                 
-            for hint_digit in sorted(phone_number, key=RANDOM_SORT_KEY):
-                self.add_hint_uix(hint_digit)
+            for hint_digit in unique_digits:
+                h_color = Fraction(unique_digits.index(hint_digit), len(unique_digits))
+                self.add_hint_uix(hint_digit, h_color)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
