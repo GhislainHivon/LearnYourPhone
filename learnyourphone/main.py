@@ -31,7 +31,7 @@ class ValidatingTextinput(TextInput):
     def insert_text(self, substring, from_undo=False):
         if substring == self.expected_text:
             value = super(ValidatingTextinput, self).insert_text(substring, from_undo)
-            self.readonly = True  # So the good text will not change
+            self.readonly = True 
             self.dispatch(ValidatingTextinput.SUCCEED_EVENT, self)
             return value
         else:
@@ -79,7 +79,7 @@ class LearnYourPhoneApp(App):
                 self.answer_layout.add_widget(digit_input)
 
         else:
-            self.spacer.text = "Set the phone number in the settings."
+            self.spacer.text = "Please input your phone number in the settings."
 
     def initialize_from_config(self):
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
@@ -102,9 +102,9 @@ class LearnYourPhoneApp(App):
         if not self.needed_answers:
             #Throw victory parade
             self.generate_replay_button()
+            self.spacer.text = "You got your phone number right, yeah !"
             if self.victory_sound:
                 self.victory_sound.play()
-            
 
     def build(self):
         self.initialize_from_config()
