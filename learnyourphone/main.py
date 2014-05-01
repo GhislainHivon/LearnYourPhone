@@ -19,8 +19,7 @@ from kivy.uix.textinput import TextInput
 
 SETTINGS_SECTION = "Learn your phone"
 SETTINGS_KEY_PHONE = "number"
-
-RANDOM_SORT_KEY = lambda _value: random.random()
+SETTINGS_KEY_SOUND = "sound"
 
 
 def hue_to_rgba(hue):
@@ -43,7 +42,7 @@ class ValidatingTextinput(TextInput):
     def insert_text(self, substring, from_undo=False):
         if substring == self.expected_text:
             value = super(ValidatingTextinput, self).insert_text(substring, from_undo)
-            self.readonly = True 
+            self.readonly = True
             self.dispatch(ValidatingTextinput.SUCCEED_EVENT, self)
             return value
         else:
@@ -58,6 +57,7 @@ class LearnYourPhoneApp(App):
     needed_answers = None
     victory_sound = None
     replay_button = None
+    _play_sound = None
 
     @property
     def spacer(self):
@@ -70,7 +70,28 @@ class LearnYourPhoneApp(App):
     @property
     def hint_layout(self):
         return self.root.ids.hint_layout
-    
+
+    @property
+    def play_sound(self):
+        """If the app should play sound"""
+        return self._play_sound
+
+    @play_sound.setter
+    def play_sound(self, value):
+        if value is True:
+            self._play_sound = True
+        else:
+            if isinstance(value, unicode):
+                unicode_value = value
+            else:
+                unicode_value = unicode(value, errors="ignore")
+
+            sound_settings_values = [u"0", u"1"]
+            if unicode_value in sound_settings_values:
+                self._play_sound = bool(sound_settings_values.index(unicode_value))
+            else:
+                self._play_sound = bool(False)
+
     def add_answer_input(self, answer_digit, hue):
         answer_input = ValidatingTextinput(expecting=answer_digit,
                                           multiline=False,
@@ -88,7 +109,7 @@ class LearnYourPhoneApp(App):
 
     def add_hint_uix(self, hint_digit, hue):
         hint_uix = Label(text=hint_digit,
-                         size_hint=(1,None),
+                         size_hint=(1, None),
                          font_size=30)
         hint_uix.color = hue_to_rgba(hue)
         self.hint_layout.add_widget(hint_uix)
@@ -105,7 +126,7 @@ class LearnYourPhoneApp(App):
             for answer_digit in phone_number:
                 answer_hue = Fraction(unique_digits.index(answer_digit), len(unique_digits))
                 self.add_answer_input(answer_digit, answer_hue)
-                
+
             for hint_digit in unique_digits:
                 hint_hue = Fraction(unique_digits.index(hint_digit), len(unique_digits))
                 self.add_hint_uix(hint_digit, hint_hue)
@@ -113,6 +134,7 @@ class LearnYourPhoneApp(App):
             self.spacer.text = "Please input your phone number in the settings."
 
     def initialize_from_config(self):
+        self.play_sound = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_SOUND)
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
         self.initialize_phone_guessing(phone_number)
 
@@ -126,7 +148,7 @@ class LearnYourPhoneApp(App):
         self.hint_layout.clear_widgets()
         self.hint_layout.add_widget(self.replay_button)
 
-    def input_succeed(self, instance, *args):
+    def input_succeed(self, instance, *_args):
         if instance in self.needed_answers:
             self.needed_answers.remove(instance)
 
@@ -134,7 +156,7 @@ class LearnYourPhoneApp(App):
             #Throw victory parade
             self.generate_replay_button()
             self.spacer.text = "You got your phone number right, yeah !"
-            if self.victory_sound:
+            if self.play_sound and self.victory_sound:
                 self.victory_sound.play()
 
     def build(self):
@@ -144,7 +166,8 @@ class LearnYourPhoneApp(App):
 
     def build_config(self, config):
         config.setdefaults(SETTINGS_SECTION,
-                           {SETTINGS_KEY_PHONE: ""})
+                           {SETTINGS_KEY_PHONE: "",
+                            SETTINGS_KEY_SOUND: "1"})
         return super(LearnYourPhoneApp, self).build_config(config)
 
     def build_settings(self, settings):
@@ -153,15 +176,26 @@ class LearnYourPhoneApp(App):
                          "title": "Phone number",
                          "desc": "The complete phone number you want to learn",
                          "section": "{section}",
-                         "key": "{key}"
+                         "key": "{key_number}"
+                       }},
+                       {{"type": "bool",
+                         "title": "Enable sound",
+                         "section": "{section}",
+                         "key": "{key_sound}",
+                         "true": "auto"
                        }}
-                      ]""".format(section=SETTINGS_SECTION, key=SETTINGS_KEY_PHONE)
+                      ]""".format(section=SETTINGS_SECTION,
+                                  key_number=SETTINGS_KEY_PHONE,
+                                  key_sound=SETTINGS_KEY_SOUND)
         settings.add_json_panel('Learn your phone', self.config, data=jsondata)
         return super(LearnYourPhoneApp, self).build_settings(settings)
 
     def on_config_change(self, config, section, key, value):
-        if section == SETTINGS_SECTION and key == SETTINGS_KEY_PHONE:
-            self.initialize_phone_guessing(value)
+        if section == SETTINGS_SECTION:
+            if key == SETTINGS_KEY_PHONE:
+                self.initialize_phone_guessing(value)
+            elif key == SETTINGS_KEY_SOUND:
+                self.play_sound = value
         return super(LearnYourPhoneApp, self).on_config_change(config, section, key, value)
 
 
