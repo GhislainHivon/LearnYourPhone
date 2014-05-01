@@ -4,18 +4,14 @@
 
 # To check :
 # https://mail.python.org/pipermail/python-list/2008-February/494675.html
-# And kivy accept hsv color
-# http://kivy.org/docs/api-kivy.graphics.html#kivy.graphics.Color
 
 from __future__ import unicode_literals
 
 import colorsys
 from fractions import Fraction
-import random
 
 from kivy.app import App
 from kivy.core.audio import SoundLoader
-from kivy.graphics import Color
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -26,7 +22,12 @@ SETTINGS_KEY_PHONE = "number"
 
 RANDOM_SORT_KEY = lambda _value: random.random()
 
-RGBA_ALPHA = [1]
+
+def hue_to_rgba(hue):
+    """Transform a hue into a rgba color. Saturation and value are fixed"""
+    # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html
+    alpha = [1]
+    return list(colorsys.hsv_to_rgb(hue, .5, 1)) + alpha
 
 
 class ValidatingTextinput(TextInput):
@@ -70,7 +71,7 @@ class LearnYourPhoneApp(App):
     def hint_layout(self):
         return self.root.ids.hint_layout
     
-    def add_answer_input(self, answer_digit, h_color):
+    def add_answer_input(self, answer_digit, hue):
         answer_input = ValidatingTextinput(expecting=answer_digit,
                                           multiline=False,
                                           size_hint=(1, None),
@@ -80,16 +81,16 @@ class LearnYourPhoneApp(App):
             answer_input.input_type = "number"
         else:
             answer_input.input_type = "text"
-        answer_input.background_color = list(colorsys.hsv_to_rgb(h_color, .7, .7)) + RGBA_ALPHA
+        answer_input.background_color = hue_to_rgba(hue)
         answer_input.bind(on_succeed=self.input_succeed)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
-    def add_hint_uix(self, hint_digit, h_color):
+    def add_hint_uix(self, hint_digit, hue):
         hint_uix = Label(text=hint_digit,
                          size_hint=(1,None),
                          font_size=30)
-        hint_uix.color = list(colorsys.hsv_to_rgb(h_color, 1, .7)) + RGBA_ALPHA
+        hint_uix.color = hue_to_rgba(hue)
         self.hint_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
@@ -102,12 +103,12 @@ class LearnYourPhoneApp(App):
             self.spacer.text = "Guess your phone number"
             unique_digits = sorted(set(phone_number))
             for answer_digit in phone_number:
-                h_color = Fraction(unique_digits.index(answer_digit), len(unique_digits))
-                self.add_answer_input(answer_digit, h_color)
+                answer_hue = Fraction(unique_digits.index(answer_digit), len(unique_digits))
+                self.add_answer_input(answer_digit, answer_hue)
                 
             for hint_digit in unique_digits:
-                h_color = Fraction(unique_digits.index(hint_digit), len(unique_digits))
-                self.add_hint_uix(hint_digit, h_color)
+                hint_hue = Fraction(unique_digits.index(hint_digit), len(unique_digits))
+                self.add_hint_uix(hint_digit, hint_hue)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
@@ -162,6 +163,7 @@ class LearnYourPhoneApp(App):
         if section == SETTINGS_SECTION and key == SETTINGS_KEY_PHONE:
             self.initialize_phone_guessing(value)
         return super(LearnYourPhoneApp, self).on_config_change(config, section, key, value)
+
 
 if __name__ == '__main__':
     LearnYourPhoneApp().run()
