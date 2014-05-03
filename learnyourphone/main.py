@@ -117,11 +117,8 @@ class LearnYourPhoneApp(App):
                                           multiline=False,
                                           size_hint=(1, None),
                                           font_size=30,
-                                          focus=True)
-        if answer_digit.isdigit():
-            answer_input.input_type = "number"
-        else:
-            answer_input.input_type = "text"
+                                          input_type = "number")
+
         answer_input.background_color = hue_to_rgba(hue)
         answer_input.bind(on_succeed=self.input_succeed)
         self.needed_answers.append(answer_input)
