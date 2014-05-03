@@ -31,24 +31,26 @@ def hue_to_rgba(hue):
     return list(colorsys.hsv_to_rgb(hue, .5, 1)) + alpha
 
 
-class ValidatingTextinput(TextInput):
-    """A self validating textinput: refusing everything that is not  the expected text"""
+class SingleDigitTextinput(TextInput):
+    """A TextInput refusing everything that is not the expected digit"""
 
     SUCCEED_EVENT = b'on_succeed'
 
     def __init__(self, **kwargs):
         self.expected_text = kwargs.pop("expecting")
-        super(ValidatingTextinput, self).__init__(**kwargs)
-        self.register_event_type(ValidatingTextinput.SUCCEED_EVENT)
+        assert self.expected_text in string.digits, "Not a digit"
+        assert len(self.expected_text) == 1, "Not a single digit"
+        super(SingleDigitTextinput, self).__init__(**kwargs)
+        self.register_event_type(SingleDigitTextinput.SUCCEED_EVENT)
 
     def insert_text(self, substring, from_undo=False):
         if substring == self.expected_text:
-            value = super(ValidatingTextinput, self).insert_text(substring, from_undo)
+            value = super(SingleDigitTextinput, self).insert_text(substring, from_undo)
             self.readonly = True
-            self.dispatch(ValidatingTextinput.SUCCEED_EVENT, self)
+            self.dispatch(SingleDigitTextinput.SUCCEED_EVENT, self)
             return value
         else:
-            return super(ValidatingTextinput, self).insert_text("", from_undo)
+            return super(SingleDigitTextinput, self).insert_text("", from_undo)
 
     def on_succeed(self, instance):
         pass
@@ -113,11 +115,11 @@ class LearnYourPhoneApp(App):
                 self._play_sound = bool(False)
 
     def add_answer_input(self, answer_digit, hue):
-        answer_input = ValidatingTextinput(expecting=answer_digit,
-                                          multiline=False,
-                                          size_hint=(1, None),
-                                          font_size=30,
-                                          input_type = "number")
+        answer_input = SingleDigitTextinput(expecting=answer_digit,
+                                            multiline=False,
+                                            size_hint=(1, None),
+                                            font_size=30,
+                                            input_type = "number")
 
         answer_input.background_color = hue_to_rgba(hue)
         answer_input.bind(on_succeed=self.input_succeed)
