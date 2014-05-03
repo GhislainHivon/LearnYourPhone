@@ -14,6 +14,7 @@ from kivy.app import App
 from kivy.core.audio import SoundLoader
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.settings import SettingString
 from kivy.uix.textinput import TextInput
 
 
@@ -50,6 +51,25 @@ class ValidatingTextinput(TextInput):
 
     def on_succeed(self, instance):
         pass
+
+
+class SettingsPhone(SettingString):
+    """Only accept digit for phone number"""
+
+    def on_textinput(self, instance, value):
+        """To add some property to the textinput"""
+        value.input_type = "number"
+
+    def _validate(self, instance):
+        self._dismiss()
+        value = self.textinput.text.strip()
+        if value.isdigit():
+            self.value = value
+        else:
+            #The kivy way is to do nothing
+            return
+
+
 
 class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
@@ -148,7 +168,7 @@ class LearnYourPhoneApp(App):
         self.hint_layout.clear_widgets()
         self.hint_layout.add_widget(self.replay_button)
 
-    def input_succeed(self, instance, *_args):
+    def input_succeed(self, instance, _value):
         if instance in self.needed_answers:
             self.needed_answers.remove(instance)
 
@@ -172,9 +192,9 @@ class LearnYourPhoneApp(App):
 
     def build_settings(self, settings):
         jsondata = """[
-                       {{"type": "string",
+                       {{"type": "phone",
                          "title": "Phone number",
-                         "desc": "The complete phone number you want to learn",
+                         "desc": "The complete phone number you want to learn (digit only)",
                          "section": "{section}",
                          "key": "{key_number}"
                        }},
@@ -187,6 +207,7 @@ class LearnYourPhoneApp(App):
                       ]""".format(section=SETTINGS_SECTION,
                                   key_number=SETTINGS_KEY_PHONE,
                                   key_sound=SETTINGS_KEY_SOUND)
+        settings.register_type("phone", SettingsPhone)
         settings.add_json_panel('Learn your phone', self.config, data=jsondata)
         return super(LearnYourPhoneApp, self).build_settings(settings)
 
