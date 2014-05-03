@@ -70,7 +70,6 @@ class SettingsPhone(SettingString):
             return
 
 
-
 class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
 
