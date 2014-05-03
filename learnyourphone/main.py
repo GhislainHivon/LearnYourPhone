@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 
 import colorsys
 from fractions import Fraction
+import string
 
 from kivy.app import App
 from kivy.core.audio import SoundLoader
@@ -125,7 +126,7 @@ class LearnYourPhoneApp(App):
 
     def add_hint_uix(self, hint_digit, hue):
         hint_uix = Label(text=hint_digit,
-                         size_hint=(1, None),
+                         size_hint=(None, None),
                          font_size=30)
         hint_uix.color = hue_to_rgba(hue)
         self.hint_layout.add_widget(hint_uix)
@@ -138,13 +139,12 @@ class LearnYourPhoneApp(App):
 
         if phone_number:
             self.spacer.text = "Guess your phone number"
-            unique_digits = sorted(set(phone_number))
             for answer_digit in phone_number:
-                answer_hue = Fraction(unique_digits.index(answer_digit), len(unique_digits))
+                answer_hue = Fraction(int(answer_digit), len(string.digits))
                 self.add_answer_input(answer_digit, answer_hue)
 
-            for hint_digit in unique_digits:
-                hint_hue = Fraction(unique_digits.index(hint_digit), len(unique_digits))
+            for hint_digit in string.digits:
+                hint_hue = Fraction(int(hint_digit), len(string.digits))
                 self.add_hint_uix(hint_digit, hint_hue)
         else:
             self.spacer.text = "Please input your phone number in the settings."
