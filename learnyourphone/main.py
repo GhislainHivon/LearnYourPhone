@@ -59,11 +59,11 @@ class SingleDigitTextinput(TextInput):
 class SettingsPhone(SettingString):
     """Only accept digit for phone number"""
 
-    def on_textinput(self, instance, value):
+    def on_textinput(self, _instance, value):
         """To add some property to the textinput"""
         value.input_type = "number"
 
-    def _validate(self, instance):
+    def _validate(self, _instance):
         self._dismiss()
         value = self.textinput.text.strip()
         if value.isdigit():
@@ -90,8 +90,8 @@ class LearnYourPhoneApp(App):
         return self.root.ids.answer_layout
 
     @property
-    def hint_layout(self):
-        return self.root.ids.hint_layout
+    def extra_layout(self):
+        return self.root.ids.extra_layout
 
     @property
     def play_sound(self):
@@ -114,40 +114,32 @@ class LearnYourPhoneApp(App):
             else:
                 self._play_sound = bool(False)
 
-    def add_answer_input(self, answer_digit, hue):
+    def add_answer_input(self, answer_digit, position, phone_length):
         answer_input = SingleDigitTextinput(expecting=answer_digit,
                                             multiline=False,
-                                            size_hint=(1, None),
-                                            font_size=30,
-                                            input_type = "number")
+                                            size_hint=[float(Fraction(1, phone_length)), .2],
+                                            pos_hint={"x": float(Fraction(position, phone_length)),
+                                                      "center_y": .1},
+                                            font_size=40,
+                                            input_type="number")
 
-        answer_input.background_color = hue_to_rgba(hue)
+        answer_input.background_color = hue_to_rgba(Fraction(position, phone_length))
         answer_input.bind(on_succeed=self.input_succeed)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
-    def add_hint_uix(self, hint_digit, hue):
-        hint_uix = Label(text=hint_digit,
-                         size_hint=(None, None),
-                         font_size=30)
-        hint_uix.color = hue_to_rgba(hue)
-        self.hint_layout.add_widget(hint_uix)
-
     def initialize_phone_guessing(self, phone_number):
         self.answer_layout.clear_widgets()
-        self.hint_layout.clear_widgets()
+        self.extra_layout.remove_widget(self.replay_button)
 
         self.needed_answers = []
 
         if phone_number:
-            self.spacer.text = "Guess your phone number"
-            for answer_digit in phone_number:
-                answer_hue = Fraction(int(answer_digit), len(string.digits))
-                self.add_answer_input(answer_digit, answer_hue)
+            self.spacer.text = "Reorder the digits to form your phone number"
+            how_many = len(phone_number)
+            for position, answer_digit in enumerate(phone_number):
 
-            for hint_digit in string.digits:
-                hint_hue = Fraction(int(hint_digit), len(string.digits))
-                self.add_hint_uix(hint_digit, hint_hue)
+                self.add_answer_input(answer_digit, position, how_many)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
@@ -158,26 +150,26 @@ class LearnYourPhoneApp(App):
 
     def replay(self, _instance):
         self.initialize_from_config()
-        self.replay_button = None
 
-    def generate_replay_button(self):
-        self.replay_button = Button(text="replay", size_hint=(None, None))
-        self.replay_button.bind(on_press=self.replay)
-        self.hint_layout.clear_widgets()
-        self.hint_layout.add_widget(self.replay_button)
+    def show_replay_button(self):
+        self.extra_layout.add_widget(self.replay_button)
 
     def input_succeed(self, instance, _value):
         if instance in self.needed_answers:
             self.needed_answers.remove(instance)
-
-        if not self.needed_answers:
-            #Throw victory parade
-            self.generate_replay_button()
-            self.spacer.text = "You got your phone number right, yeah !"
             if self.play_sound and self.victory_sound:
                 self.victory_sound.play()
 
+        if not self.needed_answers:
+            #Throw victory parade
+            self.show_replay_button()
+            self.spacer.text = "You got your phone number right, yeah !"
+
+
     def build(self):
+        self.replay_button = Button(size_hint=(.2, 1),
+                                    text="Replay")
+        self.replay_button.bind(on_press=self.replay)
         self.initialize_from_config()
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
         return super(LearnYourPhoneApp, self).build()

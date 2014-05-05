@@ -2,12 +2,14 @@
 
 BoxLayout:
     orientation: 'vertical'
-    BoxLayout:
-        orientation: 'horizontal'
+    FloatLayout:
+        size_hint: (1, .9)
         id: answer_layout
-    Label:
-        text: ""
-        id: spacer
     BoxLayout:
+        id: extra_layout
+        size_hint: (1, .1)
         orientation: 'horizontal'
-        id: hint_layout
+        Label:
+            id: spacer
+            size_hint: (.8, 1)
+            text: ""
