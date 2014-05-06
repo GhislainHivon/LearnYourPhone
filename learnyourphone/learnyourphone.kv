@@ -20,7 +20,20 @@ BoxLayout:
     size: digit.size
     size_hint: None, None
     Label:
-        pos_hint: 0, 0 
-        size_hint: None, None
         id: digit
+        pos_hint: None, None
+        size_hint: None, None
         text_size: self.size
+        text: self.parent.text
+        color: self.parent.color
+        font_size: self.parent.font_size
+
+<HintDigit>:
+    text_size: self.size
+    canvas.before:
+        Color:
+            rgba: self.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+

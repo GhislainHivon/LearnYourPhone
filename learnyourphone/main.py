@@ -9,12 +9,15 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
+import collections
 from fractions import Fraction
 import random
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.metrics import dp
+from kivy.properties import  ListProperty, NumericProperty, StringProperty
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
@@ -26,24 +29,28 @@ SETTINGS_KEY_PHONE = "number"
 SETTINGS_KEY_SOUND = "sound"
 
 
-def hue_to_rgba(hue):
+def hue_to_rgba(hue, alpha=None):
     """Transform a hue into a rgba color. Saturation and value are fixed"""
     # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html
-    alpha = [1]
+    if alpha is None:
+        alpha = [1]
+    if not isinstance(alpha, collections.Iterable):
+        alpha = [alpha]
     return list(colorsys.hsv_to_rgb(hue, .5, 1)) + alpha
 
 
 class MoveableDigit(Scatter):
 
-    def __init__(self, **kwargs):
-        text = kwargs.pop("text")
-        font_size = kwargs.pop("font_size")
-        color = kwargs.pop("color")
-        super(MoveableDigit, self).__init__(**kwargs)
-        self.ids.digit.text = text
-        self.ids.digit.font_size = font_size
-        self.ids.digit.color = color
+    color = ListProperty([1, 1, 1, 1])
+    text = StringProperty("")
+    font_size = NumericProperty(dp(12))
 
+
+class HintDigit(Label):
+    background_color = ListProperty([0, 0, 0, 1])
+    digit = StringProperty("")
+    position = NumericProperty()
+    phone_length = NumericProperty()
 
 
 class SettingsPhone(SettingString):
@@ -109,15 +116,27 @@ class LearnYourPhoneApp(App):
                 self._play_sound = bool(False)
 
     def add_digit_uix(self, digit, real_position, place, phone_length):
-        relative_hint = Fraction(real_position, phone_length)
+        relative_position = Fraction(real_position, phone_length)
         digit_uix = MoveableDigit(text=digit,
                                   font_size=70 + real_position * 2,
-                                  color=hue_to_rgba(relative_hint))
+                                  color=hue_to_rgba(relative_position))
         digit_uix.pos = [place * self.answer_layout.width / phone_length,
-                                                 self.answer_layout.height / 5]
+                         self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)
         self.digits.append(digit_uix)
         self.answer_layout.add_widget(digit_uix)
+
+    def add_hint_uix(self, digit, position, phone_length):
+        relative_position = Fraction(position, phone_length)
+        hue = hue_to_rgba(relative_position, alpha=.5)
+        hint_uix = HintDigit(digit=digit, position=position,
+                             phone_length=phone_length,
+                             font_size=70,
+                             background_color=hue,
+                             pos_hint={"x": float(relative_position), "y": .5},
+                             size_hint=[float(Fraction(1, phone_length)), None])
+
+        self.answer_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
         self.digits = []
@@ -128,11 +147,12 @@ class LearnYourPhoneApp(App):
 
         if phone_number:
             self.message.text = "Reorder the digits to form your phone number"
-            how_many = len(phone_number)
-            random_position = range(how_many)
+            phone_length = len(phone_number)
+            random_position = range(phone_length)
             random.shuffle(random_position)
             for position, digit in enumerate(phone_number):
-                self.add_digit_uix(digit, position, random_position.pop(), how_many)
+                self.add_digit_uix(digit, position, random_position.pop(), phone_length)
+                self.add_hint_uix(digit, position, phone_length)
         else:
             self.message.text = "Please input your phone number in the settings."
 
