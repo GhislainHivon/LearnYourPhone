@@ -68,10 +68,12 @@ class SettingsPhone(SettingString):
 class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
 
-    needed_answers = None
+    digits = None
+
     victory_sound = None
     victory_callback = None
     in_victory = False
+
     replay_button = None
     _play_sound = None
 
@@ -108,19 +110,19 @@ class LearnYourPhoneApp(App):
             else:
                 self._play_sound = bool(False)
 
-    def add_answer_input(self, answer_digit, real_position, place, phone_length):
+    def add_digit_uix(self, digit, real_position, place, phone_length):
         relative_hint = Fraction(real_position, phone_length)
-        answer_input = MoveableDigit(text=answer_digit,
-                                     font_size=70 + real_position * 2,
-                                     color=hue_to_rgba(relative_hint))
-        answer_input.pos = [place * self.answer_layout.width / phone_length , 
+        digit_uix = MoveableDigit(text=digit,
+                                  font_size=70 + real_position * 2,
+                                  color=hue_to_rgba(relative_hint))
+        digit_uix.pos = [place * self.answer_layout.width / phone_length , 
                                                  self.answer_layout.height / 5]
-        answer_input.bind(on_touch_up=self.validate_answers)
-        self.needed_answers.append(answer_input)
-        self.answer_layout.add_widget(answer_input)
+        digit_uix.bind(on_touch_up=self.validate_answers)
+        self.digits.append(digit_uix)
+        self.answer_layout.add_widget(digit_uix)
 
     def initialize_phone_guessing(self, phone_number):
-        self.needed_answers = []
+        self.digits = []
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self.replay_button)
         Clock.unschedule(self.dancing)
@@ -131,9 +133,8 @@ class LearnYourPhoneApp(App):
             how_many = len(phone_number)
             random_position = range(how_many)
             random.shuffle(random_position)
-            for position, answer_digit in enumerate(phone_number):
-
-                self.add_answer_input(answer_digit, position, random_position.pop(), how_many)
+            for position, digit in enumerate(phone_number):
+                self.add_digit_uix(digit, position, random_position.pop(), how_many)
         else:
             self.message.text = "Please input your phone number in the settings."
 
@@ -146,13 +147,13 @@ class LearnYourPhoneApp(App):
         self.initialize_from_config()
 
     def dancing(self, *_args):
-        for answer in self.needed_answers:
-            move = random.randint(-answer.height // 4, answer.height // 4)
-            answer.y += move
-            if answer.y < 0:
-                answer.y = 0
-            if answer.top > answer.parent.height:
-                answer.top = answer.parent.height
+        for digit_uix in self.digits:
+            move = random.randint(-digit_uix.height // 4, digit_uix.height // 4)
+            digit_uix.y += move
+            if digit_uix.y < 0:
+                digit_uix.y = 0
+            if digit_uix.top > digit_uix.parent.height:
+                digit_uix.top = digit_uix.parent.height
 
     def victory(self, *_args):
         if self.play_sound and self.victory_sound:
@@ -162,11 +163,11 @@ class LearnYourPhoneApp(App):
         Clock.schedule_interval(self.dancing, .5)
 
     def validate_answers(self, instance, *_args):
-        before = self.needed_answers[0]
-        for answer in self.needed_answers[1:]:
-            if not before.x < answer.x:
+        before = self.digits[0]
+        for current in self.digits[1:]:
+            if not before.x < current.x:
                 return
-            before = answer
+            before = current
         if not self.in_victory:
             self.in_victory = True
             self.victory_callback()
