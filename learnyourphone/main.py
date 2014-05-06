@@ -113,7 +113,7 @@ class LearnYourPhoneApp(App):
                                      color=hue_to_rgba(relative_hint))
         answer_input.pos = [place * self.answer_layout.width / phone_length , 
                                                  self.answer_layout.height / 5]
-        answer_input.bind(on_touch_up=self.input_succeed)
+        answer_input.bind(on_touch_up=self.validate_answers)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
@@ -143,11 +143,10 @@ class LearnYourPhoneApp(App):
         self.initialize_from_config()
 
     def show_replay_button(self):
-
         self.extra_layout.remove_widget(self.replay_button)
         self.extra_layout.add_widget(self.replay_button)
 
-    def input_succeed(self, instance, *_args):
+    def validate_answers(self, instance, *_args):
         before = self.needed_answers[0]
         for answer in self.needed_answers[1:]:
             if not before.x < answer.x:
