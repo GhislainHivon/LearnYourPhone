@@ -2,9 +2,13 @@
 
 BoxLayout:
     orientation: 'vertical'
-    FloatLayout:
+    RelativeLayout:
         size_hint: (1, .9)
         id: answer_layout
+        canvas:
+            Rectangle:
+                pos: 0, self.center_y - 5
+                size: self.width, 10
     BoxLayout:
         id: extra_layout
         size_hint: (1, .1)
@@ -13,3 +17,11 @@ BoxLayout:
             id: spacer
             size_hint: (.8, 1)
             text: ""
+
+<MoveableDigit>:
+    do_rotation: False
+    do_scale: False
+    Label:
+        size_hint: 1,1
+        pos_hint: 0, 0 
+        id: digit

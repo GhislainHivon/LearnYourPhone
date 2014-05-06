@@ -15,9 +15,11 @@ import string
 
 from kivy.app import App
 from kivy.core.audio import SoundLoader
+from kivy.uix.behaviors import DragBehavior
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
+from kivy.uix.scatter import Scatter
 from kivy.uix.textinput import TextInput
 
 
@@ -31,6 +33,18 @@ def hue_to_rgba(hue):
     # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html
     alpha = [1]
     return list(colorsys.hsv_to_rgb(hue, .5, 1)) + alpha
+
+
+class MoveableDigit(Scatter):
+    
+    def __init__(self, **kwargs):
+        text = kwargs.pop("text")
+        font_size = kwargs.pop("font_size")
+        color = kwargs.pop("color")
+        super(MoveableDigit, self).__init__(**kwargs)
+        self.ids.digit.text = text
+        self.ids.digit.font_size = font_size
+        self.ids.digit.color = color
 
 
 class SingleDigitTextinput(TextInput):
@@ -118,16 +132,14 @@ class LearnYourPhoneApp(App):
 
     def add_answer_input(self, answer_digit, real_position, place, phone_length):
         relative_hint = Fraction(real_position, phone_length)
-        answer_input = SingleDigitTextinput(expecting=answer_digit,
-                                            multiline=False,
-                                            size_hint=[float(Fraction(1, phone_length)), .1 + relative_hint / 10],
-                                            pos_hint={"x": float(Fraction(place, phone_length)),
-                                                      "center_y": .1},
-                                            font_size=40,
-                                            input_type="number")
-
-        answer_input.background_color = hue_to_rgba(relative_hint)
-        answer_input.bind(on_succeed=self.input_succeed)
+        print(self.root.size)
+        answer_input = MoveableDigit(text=answer_digit,
+                                     size_hint=[float(Fraction(1, phone_length)), .1 + relative_hint / 10],
+                                            pos=[30 * place, 
+                                                 self.answer_layout.height + self.answer_layout.height // 5],
+                                            font_size=40 + real_position * 2,
+                                            color=hue_to_rgba(relative_hint))
+        
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
