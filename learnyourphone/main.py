@@ -75,8 +75,8 @@ class LearnYourPhoneApp(App):
     _play_sound = None
 
     @property
-    def spacer(self):
-        return self.root.ids.spacer
+    def message(self):
+        return self.root.ids.message
 
     @property
     def answer_layout(self):
@@ -125,7 +125,7 @@ class LearnYourPhoneApp(App):
         self.needed_answers = []
 
         if phone_number:
-            self.spacer.text = "Reorder the digits to form your phone number"
+            self.message.text = "Reorder the digits to form your phone number"
             how_many = len(phone_number)
             random_position = range(how_many)
             random.shuffle(random_position)
@@ -133,7 +133,7 @@ class LearnYourPhoneApp(App):
 
                 self.add_answer_input(answer_digit, position, random_position.pop(), how_many)
         else:
-            self.spacer.text = "Please input your phone number in the settings."
+            self.message.text = "Please input your phone number in the settings."
 
     def initialize_from_config(self):
         self.play_sound = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_SOUND)
@@ -147,7 +147,7 @@ class LearnYourPhoneApp(App):
         if self.play_sound and self.victory_sound:
             self.victory_sound.play()
         self.extra_layout.add_widget(self.replay_button)
-        self.spacer.text = "You got your phone number right, yeah !"
+        self.message.text = "You got your phone number right, yeah !"
 
     def validate_answers(self, instance, *_args):
         before = self.needed_answers[0]
