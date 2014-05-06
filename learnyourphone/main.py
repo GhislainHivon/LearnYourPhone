@@ -71,6 +71,7 @@ class LearnYourPhoneApp(App):
     needed_answers = None
     victory_sound = None
     victory_callback = None
+    in_victory = False
     replay_button = None
     _play_sound = None
 
@@ -119,10 +120,11 @@ class LearnYourPhoneApp(App):
         self.answer_layout.add_widget(answer_input)
 
     def initialize_phone_guessing(self, phone_number):
+        self.needed_answers = []
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self.replay_button)
-
-        self.needed_answers = []
+        Clock.unschedule(self.dancing)
+        self.in_victory = False
 
         if phone_number:
             self.message.text = "Reorder the digits to form your phone number"
@@ -143,11 +145,21 @@ class LearnYourPhoneApp(App):
     def replay(self, _instance):
         self.initialize_from_config()
 
+    def dancing(self, *_args):
+        for answer in self.needed_answers:
+            move = random.randint(-answer.height // 4, answer.height // 4)
+            answer.y += move
+            if answer.y < 0:
+                answer.y = 0
+            if answer.top > answer.parent.height:
+                answer.top = answer.parent.height
+
     def victory(self, *_args):
         if self.play_sound and self.victory_sound:
             self.victory_sound.play()
         self.extra_layout.add_widget(self.replay_button)
         self.message.text = "You got your phone number right, yeah !"
+        Clock.schedule_interval(self.dancing, .5)
 
     def validate_answers(self, instance, *_args):
         before = self.needed_answers[0]
@@ -155,7 +167,9 @@ class LearnYourPhoneApp(App):
             if not before.x < answer.x:
                 return
             before = answer
-        self.victory_callback()
+        if not self.in_victory:
+            self.in_victory = True
+            self.victory_callback()
 
     def build(self):
         self.replay_button = Button(size_hint=(.2, 1),
