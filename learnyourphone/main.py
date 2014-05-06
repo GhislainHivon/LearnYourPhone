@@ -14,6 +14,7 @@ import random
 import string
 
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.uix.behaviors import DragBehavior
 from kivy.uix.button import Button
@@ -132,14 +133,11 @@ class LearnYourPhoneApp(App):
 
     def add_answer_input(self, answer_digit, real_position, place, phone_length):
         relative_hint = Fraction(real_position, phone_length)
-        print(self.root.size)
         answer_input = MoveableDigit(text=answer_digit,
-                                     size_hint=[float(Fraction(1, phone_length)), .1 + relative_hint / 10],
-                                            pos=[30 * place, 
-                                                 self.answer_layout.height + self.answer_layout.height // 5],
-                                            font_size=40 + real_position * 2,
-                                            color=hue_to_rgba(relative_hint))
-        
+                                     font_size=70 + real_position * 2,
+                                     color=hue_to_rgba(relative_hint))
+        answer_input.pos = [place * self.answer_layout.width / phone_length , 
+                                                 self.answer_layout.height / 5]
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
@@ -187,9 +185,14 @@ class LearnYourPhoneApp(App):
         self.replay_button = Button(size_hint=(.2, 1),
                                     text="Replay")
         self.replay_button.bind(on_press=self.replay)
-        self.initialize_from_config()
+        
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
         return super(LearnYourPhoneApp, self).build()
+
+    def on_start(self):
+        starting = super(LearnYourPhoneApp, self).on_start()
+        Clock.schedule_once(lambda dt: self.initialize_from_config(), 2.5)
+        return starting
 
     def build_config(self, config):
         config.setdefaults(SETTINGS_SECTION,
