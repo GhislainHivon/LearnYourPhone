@@ -5,10 +5,12 @@
 # To check :
 # https://mail.python.org/pipermail/python-list/2008-February/494675.html
 
+from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
 from fractions import Fraction
+import random
 import string
 
 from kivy.app import App
@@ -114,16 +116,17 @@ class LearnYourPhoneApp(App):
             else:
                 self._play_sound = bool(False)
 
-    def add_answer_input(self, answer_digit, position, phone_length):
+    def add_answer_input(self, answer_digit, real_position, place, phone_length):
+        relative_hint = Fraction(real_position, phone_length)
         answer_input = SingleDigitTextinput(expecting=answer_digit,
                                             multiline=False,
-                                            size_hint=[float(Fraction(1, phone_length)), .2],
-                                            pos_hint={"x": float(Fraction(position, phone_length)),
+                                            size_hint=[float(Fraction(1, phone_length)), .1 + relative_hint / 10],
+                                            pos_hint={"x": float(Fraction(place, phone_length)),
                                                       "center_y": .1},
                                             font_size=40,
                                             input_type="number")
 
-        answer_input.background_color = hue_to_rgba(Fraction(position, phone_length))
+        answer_input.background_color = hue_to_rgba(relative_hint)
         answer_input.bind(on_succeed=self.input_succeed)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
@@ -137,9 +140,11 @@ class LearnYourPhoneApp(App):
         if phone_number:
             self.spacer.text = "Reorder the digits to form your phone number"
             how_many = len(phone_number)
+            random_position = range(how_many)
+            random.shuffle(random_position)
             for position, answer_digit in enumerate(phone_number):
 
-                self.add_answer_input(answer_digit, position, how_many)
+                self.add_answer_input(answer_digit, position, random_position.pop(), how_many)
         else:
             self.spacer.text = "Please input your phone number in the settings."
 
