@@ -70,6 +70,7 @@ class LearnYourPhoneApp(App):
 
     needed_answers = None
     victory_sound = None
+    victory_callback = None
     replay_button = None
     _play_sound = None
 
@@ -142,9 +143,11 @@ class LearnYourPhoneApp(App):
     def replay(self, _instance):
         self.initialize_from_config()
 
-    def show_replay_button(self):
-        self.extra_layout.remove_widget(self.replay_button)
+    def victory(self, *_args):
+        if self.play_sound and self.victory_sound:
+            self.victory_sound.play()
         self.extra_layout.add_widget(self.replay_button)
+        self.spacer.text = "You got your phone number right, yeah !"
 
     def validate_answers(self, instance, *_args):
         before = self.needed_answers[0]
@@ -152,13 +155,7 @@ class LearnYourPhoneApp(App):
             if not before.x < answer.x:
                 return
             before = answer
-        
-        #Throw victory parade
-        if self.play_sound and self.victory_sound:
-            self.victory_sound.play()
-        self.show_replay_button()
-        self.spacer.text = "You got your phone number right, yeah !"
-
+        self.victory_callback()
 
     def build(self):
         self.replay_button = Button(size_hint=(.2, 1),
@@ -166,6 +163,7 @@ class LearnYourPhoneApp(App):
         self.replay_button.bind(on_press=self.replay)
         
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
+        self.victory_callback = Clock.create_trigger(self.victory)
         return super(LearnYourPhoneApp, self).build()
 
     def on_start(self):
