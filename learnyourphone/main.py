@@ -11,7 +11,6 @@ from __future__ import unicode_literals
 import colorsys
 from fractions import Fraction
 import random
-import string
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -20,7 +19,6 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
 from kivy.uix.scatter import Scatter
-from kivy.uix.textinput import TextInput
 
 
 SETTINGS_SECTION = "Learn your phone"
@@ -36,7 +34,7 @@ def hue_to_rgba(hue):
 
 
 class MoveableDigit(Scatter):
-    
+
     def __init__(self, **kwargs):
         text = kwargs.pop("text")
         font_size = kwargs.pop("font_size")
@@ -115,7 +113,7 @@ class LearnYourPhoneApp(App):
         digit_uix = MoveableDigit(text=digit,
                                   font_size=70 + real_position * 2,
                                   color=hue_to_rgba(relative_hint))
-        digit_uix.pos = [place * self.answer_layout.width / phone_length , 
+        digit_uix.pos = [place * self.answer_layout.width / phone_length,
                                                  self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)
         self.digits.append(digit_uix)
@@ -162,7 +160,7 @@ class LearnYourPhoneApp(App):
         self.message.text = "You got your phone number right, yeah !"
         Clock.schedule_interval(self.dancing, .5)
 
-    def validate_answers(self, instance, *_args):
+    def validate_answers(self, _instance, *_args):
         before = self.digits[0]
         for current in self.digits[1:]:
             if not before.x < current.x:
@@ -176,14 +174,14 @@ class LearnYourPhoneApp(App):
         self.replay_button = Button(size_hint=(.2, 1),
                                     text="Replay")
         self.replay_button.bind(on_press=self.replay)
-        
+
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
         self.victory_callback = Clock.create_trigger(self.victory)
         return super(LearnYourPhoneApp, self).build()
 
     def on_start(self):
         starting = super(LearnYourPhoneApp, self).on_start()
-        Clock.schedule_once(lambda dt: self.initialize_from_config(), 2.5)
+        Clock.schedule_once(lambda _dt: self.initialize_from_config(), 2.75)
         return starting
 
     def build_config(self, config):
