@@ -16,7 +16,6 @@ import string
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
-from kivy.uix.behaviors import DragBehavior
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
@@ -47,30 +46,6 @@ class MoveableDigit(Scatter):
         self.ids.digit.font_size = font_size
         self.ids.digit.color = color
 
-
-class SingleDigitTextinput(TextInput):
-    """A TextInput refusing everything that is not the expected digit"""
-
-    SUCCEED_EVENT = b'on_succeed'
-
-    def __init__(self, **kwargs):
-        self.expected_text = kwargs.pop("expecting")
-        assert self.expected_text in string.digits, "Not a digit"
-        assert len(self.expected_text) == 1, "Not a single digit"
-        super(SingleDigitTextinput, self).__init__(**kwargs)
-        self.register_event_type(SingleDigitTextinput.SUCCEED_EVENT)
-
-    def insert_text(self, substring, from_undo=False):
-        if substring == self.expected_text:
-            value = super(SingleDigitTextinput, self).insert_text(substring, from_undo)
-            self.readonly = True
-            self.dispatch(SingleDigitTextinput.SUCCEED_EVENT, self)
-            return value
-        else:
-            return super(SingleDigitTextinput, self).insert_text("", from_undo)
-
-    def on_succeed(self, instance):
-        pass
 
 
 class SettingsPhone(SettingString):
@@ -138,6 +113,7 @@ class LearnYourPhoneApp(App):
                                      color=hue_to_rgba(relative_hint))
         answer_input.pos = [place * self.answer_layout.width / phone_length , 
                                                  self.answer_layout.height / 5]
+        answer_input.bind(on_touch_up=self.input_succeed)
         self.needed_answers.append(answer_input)
         self.answer_layout.add_widget(answer_input)
 
@@ -167,18 +143,22 @@ class LearnYourPhoneApp(App):
         self.initialize_from_config()
 
     def show_replay_button(self):
+
+        self.extra_layout.remove_widget(self.replay_button)
         self.extra_layout.add_widget(self.replay_button)
 
-    def input_succeed(self, instance, _value):
-        if instance in self.needed_answers:
-            self.needed_answers.remove(instance)
-            if self.play_sound and self.victory_sound:
-                self.victory_sound.play()
-
-        if not self.needed_answers:
-            #Throw victory parade
-            self.show_replay_button()
-            self.spacer.text = "You got your phone number right, yeah !"
+    def input_succeed(self, instance, *_args):
+        before = self.needed_answers[0]
+        for answer in self.needed_answers[1:]:
+            if not before.x < answer.x:
+                return
+            before = answer
+        
+        #Throw victory parade
+        if self.play_sound and self.victory_sound:
+            self.victory_sound.play()
+        self.show_replay_button()
+        self.spacer.text = "You got your phone number right, yeah !"
 
 
     def build(self):
