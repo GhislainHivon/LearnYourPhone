@@ -9,7 +9,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
-import collections
 from fractions import Fraction
 import random
 
@@ -29,14 +28,12 @@ SETTINGS_KEY_PHONE = "number"
 SETTINGS_KEY_SOUND = "sound"
 
 
-def hue_to_rgba(hue, alpha=None):
+def hue_to_rgba(hue, alpha=1):
     """Transform a hue into a rgba color. Saturation and value are fixed"""
     # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html
-    if alpha is None:
-        alpha = [1]
-    if not isinstance(alpha, collections.Iterable):
-        alpha = [alpha]
-    return list(colorsys.hsv_to_rgb(hue, .5, 1)) + alpha
+    rgb = list(colorsys.hsv_to_rgb(hue, .5, 1))
+    rgb.append(alpha)
+    return rgb
 
 
 class MoveableDigit(Scatter):
