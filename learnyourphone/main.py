@@ -9,7 +9,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
-import itertools
 import random
 
 from kivy.app import App
@@ -168,9 +167,9 @@ class LearnYourPhoneApp(App):
         self.initialize_phone_guessing(phone_number)
 
     def digit_in_bad_place(self, digit_uix):
-        original_color = digit_uix.color 
-        digit_uix.color = [1,0,0,1]
+        digit_uix.color = [1, 0, 0, 1]
         def reset_color(*_args):
+            # Recalculating the color to be sure to have to correct color
             digit_uix.color = hue_to_rgba(self.digits.index(digit_uix) / len(self.phone_number))
         Clock.schedule_once(reset_color, 2)
 
