@@ -79,6 +79,8 @@ class LearnYourPhoneApp(App):
     replay_button = None
     _play_sound = None
 
+    BASE_FONT_SIZE = 80
+
     @property
     def message(self):
         return self.root.ids.message
@@ -115,7 +117,7 @@ class LearnYourPhoneApp(App):
     def add_digit_uix(self, digit, real_position, place, phone_length):
         relative_position = Fraction(real_position, phone_length)
         digit_uix = MoveableDigit(text=digit,
-                                  font_size=70 + real_position * 2,
+                                  font_size=self.BASE_FONT_SIZE + real_position * 2,
                                   color=hue_to_rgba(relative_position))
         digit_uix.pos = [place * self.answer_layout.width / phone_length,
                          self.answer_layout.height / 5]
@@ -128,7 +130,7 @@ class LearnYourPhoneApp(App):
         hue = hue_to_rgba(relative_position, alpha=.5)
         hint_uix = HintDigit(digit=digit, position=position,
                              phone_length=phone_length,
-                             font_size=70,
+                             font_size=self.BASE_FONT_SIZE,
                              background_color=hue,
                              pos_hint={"x": float(relative_position), "y": .5},
                              size_hint=[float(Fraction(1, phone_length)), None])
