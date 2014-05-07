@@ -42,7 +42,7 @@ class MoveableDigit(Scatter):
     text = StringProperty("")
     font_size = NumericProperty(dp(12))
 
-class HintDigit(Label):
+class AnswerBox(Label):
     background_color = ListProperty([0, 0, 0, 1])
     digit = StringProperty("")
     position = NumericProperty()
@@ -70,6 +70,7 @@ class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
 
     digits = None
+    answer_boxes = None
     phone_number = None
 
     victory_sound = None
@@ -128,17 +129,18 @@ class LearnYourPhoneApp(App):
     def add_hint_uix(self, digit, position):
         relative_position = position / len(self.phone_number)
         hue = hue_to_rgba(relative_position, alpha=.5)
-        hint_uix = HintDigit(digit=digit, position=position,
+        hint_uix = AnswerBox(digit=digit, position=position,
                              phone_length=len(self.phone_number),
                              font_size=self.BASE_FONT_SIZE,
                              background_color=hue,
                              pos_hint={"x": float(relative_position), "y": .5},
                              size_hint=[1 / len(self.phone_number), None])
-
+        self.answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
         self.digits = []
+        self.answer_boxes = []
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self.replay_button)
         Clock.unschedule(self.dancing)
@@ -163,6 +165,7 @@ class LearnYourPhoneApp(App):
         self.initialize_phone_guessing(phone_number)
 
     def digit_in_bad_place(self, digit_uix):
+        original_color = digit_uix.color 
         digit_uix.color = [1,0,0,1]
         def reset_color(*_args):
             digit_uix.color = hue_to_rgba(self.digits.index(digit_uix) / len(self.phone_number))
@@ -188,14 +191,18 @@ class LearnYourPhoneApp(App):
         Clock.schedule_interval(self.dancing, .5)
 
     def validate_answers(self, instance, *_args):
-        bad_answer = False
-        for answer, digit_uix in itertools.izip(self.phone_number, sorted(self.digits, key=lambda d: d.x)):
-            if answer != digit_uix.text:
-                bad_answer = True
-                if instance is digit_uix:
-                    self.digit_in_bad_place(digit_uix)
-        
-        if not bad_answer:
+
+        for answer_box in self.answer_boxes:
+            if instance.collide_widget(answer_box):
+                if instance.text == answer_box.digit:
+                    instance.do_translation = False
+                    instance.color = [1, 1, 1, 1]
+                    break
+                else:
+                    self.digit_in_bad_place(instance)
+                    break
+
+        if all(digit_uix.do_translation == (False, False) for digit_uix in self.digits):
             if not self.in_victory:
                 self.in_victory = True
                 self.victory_callback()
