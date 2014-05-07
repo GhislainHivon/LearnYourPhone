@@ -42,7 +42,6 @@ class MoveableDigit(Scatter):
     text = StringProperty("")
     font_size = NumericProperty(dp(12))
 
-
 class HintDigit(Label):
     background_color = ListProperty([0, 0, 0, 1])
     digit = StringProperty("")
@@ -163,6 +162,12 @@ class LearnYourPhoneApp(App):
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
         self.initialize_phone_guessing(phone_number)
 
+    def digit_in_bad_place(self, digit_uix):
+        digit_uix.color = [1,0,0,1]
+        def reset_color(*_args):
+            digit_uix.color = hue_to_rgba(self.digits.index(digit_uix) / len(self.phone_number))
+        Clock.schedule_once(reset_color, 2)
+
     def replay(self, _instance):
         self.initialize_from_config()
 
@@ -182,16 +187,18 @@ class LearnYourPhoneApp(App):
         self.message.text = "You got your phone number right, yeah !"
         Clock.schedule_interval(self.dancing, .5)
 
-    def validate_answers(self, _instance, *_args):
+    def validate_answers(self, instance, *_args):
+        bad_answer = False
         for answer, digit_uix in itertools.izip(self.phone_number, sorted(self.digits, key=lambda d: d.x)):
             if answer != digit_uix.text:
-                # Do something to mark digit as badly place
-                
-                return  # To skip the victory
-
-        if not self.in_victory:
-            self.in_victory = True
-            self.victory_callback()
+                bad_answer = True
+                if instance is digit_uix:
+                    self.digit_in_bad_place(digit_uix)
+        
+        if not bad_answer:
+            if not self.in_victory:
+                self.in_victory = True
+                self.victory_callback()
 
     def build(self):
         self.replay_button = Button(size_hint=(.2, 1),
