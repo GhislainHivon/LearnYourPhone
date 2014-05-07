@@ -9,7 +9,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
-from fractions import Fraction
 import random
 
 from kivy.app import App
@@ -116,7 +115,7 @@ class LearnYourPhoneApp(App):
                 self._play_sound = bool(False)
 
     def add_digit_uix(self, digit, real_position, place):
-        relative_position = Fraction(real_position, len(self.phone_number))
+        relative_position = real_position / len(self.phone_number)
         digit_uix = MoveableDigit(text=digit,
                                   font_size=self.BASE_FONT_SIZE + real_position * 2,
                                   color=hue_to_rgba(relative_position))
@@ -127,14 +126,14 @@ class LearnYourPhoneApp(App):
         self.answer_layout.add_widget(digit_uix)
 
     def add_hint_uix(self, digit, position):
-        relative_position = Fraction(position, len(self.phone_number))
+        relative_position = position / len(self.phone_number)
         hue = hue_to_rgba(relative_position, alpha=.5)
         hint_uix = HintDigit(digit=digit, position=position,
                              phone_length=len(self.phone_number),
                              font_size=self.BASE_FONT_SIZE,
                              background_color=hue,
                              pos_hint={"x": float(relative_position), "y": .5},
-                             size_hint=[float(Fraction(1, len(self.phone_number))), None])
+                             size_hint=[1 / len(self.phone_number), None])
 
         self.answer_layout.add_widget(hint_uix)
 
@@ -183,6 +182,7 @@ class LearnYourPhoneApp(App):
         Clock.schedule_interval(self.dancing, .5)
 
     def validate_answers(self, _instance, *_args):
+
         before = self.digits[0]
         for current in self.digits[1:]:
             if not before.x < current.x:
