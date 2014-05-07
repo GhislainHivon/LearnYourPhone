@@ -16,7 +16,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.metrics import dp
-from kivy.properties import  ListProperty, NumericProperty, StringProperty
+from kivy.properties import  ListProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
@@ -42,11 +42,14 @@ class MoveableDigit(Scatter):
     text = StringProperty("")
     font_size = NumericProperty(dp(12))
 
+
 class AnswerBox(Label):
+
     background_color = ListProperty([0, 0, 0, 1])
     digit = StringProperty("")
     position = NumericProperty()
     phone_length = NumericProperty()
+    current_answer = ObjectProperty()
 
 
 class SettingsPhone(SettingString):
@@ -194,9 +197,13 @@ class LearnYourPhoneApp(App):
 
         for answer_box in self.answer_boxes:
             if instance.collide_widget(answer_box):
-                if instance.text == answer_box.digit:
+                if instance.text == answer_box.digit and answer_box.current_answer is None:
                     instance.do_translation = False
-                    instance.color = [1, 1, 1, 1]
+                    answer_box.current_answer = instance
+                    answer_box.background_color = [0, 0, 0, 1]
+                    break
+                if answer_box.current_answer is instance:
+                    # Already answered...
                     break
                 else:
                     self.digit_in_bad_place(instance)
@@ -206,6 +213,7 @@ class LearnYourPhoneApp(App):
             if not self.in_victory:
                 self.in_victory = True
                 self.victory_callback()
+
 
     def build(self):
         self.replay_button = Button(size_hint=(.2, 1),
