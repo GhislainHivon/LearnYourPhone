@@ -9,6 +9,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import colorsys
+import itertools
 import random
 
 from kivy.app import App
@@ -182,12 +183,12 @@ class LearnYourPhoneApp(App):
         Clock.schedule_interval(self.dancing, .5)
 
     def validate_answers(self, _instance, *_args):
+        for answer, digit_uix in itertools.izip(self.phone_number, sorted(self.digits, key=lambda d: d.x)):
+            if answer != digit_uix.text:
+                # Do something to mark digit as badly place
+                
+                return  # To skip the victory
 
-        before = self.digits[0]
-        for current in self.digits[1:]:
-            if not before.x < current.x:
-                return
-            before = current
         if not self.in_victory:
             self.in_victory = True
             self.victory_callback()
