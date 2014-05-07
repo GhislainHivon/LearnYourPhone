@@ -71,6 +71,7 @@ class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
 
     digits = None
+    phone_number = None
 
     victory_sound = None
     victory_callback = None
@@ -114,26 +115,26 @@ class LearnYourPhoneApp(App):
             else:
                 self._play_sound = bool(False)
 
-    def add_digit_uix(self, digit, real_position, place, phone_length):
-        relative_position = Fraction(real_position, phone_length)
+    def add_digit_uix(self, digit, real_position, place):
+        relative_position = Fraction(real_position, len(self.phone_number))
         digit_uix = MoveableDigit(text=digit,
                                   font_size=self.BASE_FONT_SIZE + real_position * 2,
                                   color=hue_to_rgba(relative_position))
-        digit_uix.pos = [place * self.answer_layout.width / phone_length,
+        digit_uix.pos = [place * self.answer_layout.width / len(self.phone_number),
                          self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)
         self.digits.append(digit_uix)
         self.answer_layout.add_widget(digit_uix)
 
-    def add_hint_uix(self, digit, position, phone_length):
-        relative_position = Fraction(position, phone_length)
+    def add_hint_uix(self, digit, position):
+        relative_position = Fraction(position, len(self.phone_number))
         hue = hue_to_rgba(relative_position, alpha=.5)
         hint_uix = HintDigit(digit=digit, position=position,
-                             phone_length=phone_length,
+                             phone_length=len(self.phone_number),
                              font_size=self.BASE_FONT_SIZE,
                              background_color=hue,
                              pos_hint={"x": float(relative_position), "y": .5},
-                             size_hint=[float(Fraction(1, phone_length)), None])
+                             size_hint=[float(Fraction(1, len(self.phone_number))), None])
 
         self.answer_layout.add_widget(hint_uix)
 
@@ -144,14 +145,16 @@ class LearnYourPhoneApp(App):
         Clock.unschedule(self.dancing)
         self.in_victory = False
 
+        self.phone_number = phone_number
+
         if phone_number:
             self.message.text = "Reorder the digits to form your phone number"
             phone_length = len(phone_number)
             random_position = range(phone_length)
             random.shuffle(random_position)
             for position, digit in enumerate(phone_number):
-                self.add_digit_uix(digit, position, random_position.pop(), phone_length)
-                self.add_hint_uix(digit, position, phone_length)
+                self.add_digit_uix(digit, position, random_position.pop())
+                self.add_hint_uix(digit, position)
         else:
             self.message.text = "Please input your phone number in the settings."
 
