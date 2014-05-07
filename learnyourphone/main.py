@@ -35,15 +35,15 @@ def hue_to_rgba(hue, alpha=1):
     return rgb
 
 
-class MoveableDigit(Scatter):
-
+class MoveableDigit(Scatter):  # pylint: disable=too-many-public-methods
+    """Show a digit (not enforce) to be move around."""
     color = ListProperty([1, 1, 1, 1])
     text = StringProperty("")
     font_size = NumericProperty(dp(12))
 
 
-class AnswerBox(Label):
-
+class AnswerBox(Label):  # pylint: disable=too-many-public-methods
+    """A box-like label to validate if a MoveableDigit is in the correct place"""
     background_color = ListProperty([0, 0, 0, 1])
     digit = StringProperty("")
     position = NumericProperty()
@@ -51,14 +51,15 @@ class AnswerBox(Label):
     current_answer = ObjectProperty()
 
 
-class SettingsPhone(SettingString):
+class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods
     """Only accept digit for phone number"""
 
-    def on_textinput(self, _instance, value):
+    def on_textinput(self, _instance, value):  # pylint: disable=no-self-use
         """To add some property to the textinput"""
         value.input_type = "number"
 
     def _validate(self, _instance):
+        """Ensure that the textinput.text containt only digits"""
         self._dismiss()
         value = self.textinput.text.strip()
         if value.isdigit():
@@ -68,7 +69,7 @@ class SettingsPhone(SettingString):
             return
 
 
-class LearnYourPhoneApp(App):
+class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     """The app to learn your phone number"""
 
     digits = None
@@ -80,31 +81,35 @@ class LearnYourPhoneApp(App):
     in_victory = False
 
     replay_button = None
-    _play_sound = None
+    _sound_enabled = None
 
     BASE_FONT_SIZE = 80
 
     @property
     def message(self):
+        """The message widget"""
         return self.root.ids.message
 
     @property
     def answer_layout(self):
+        """The answer_layout widget"""
         return self.root.ids.answer_layout
 
     @property
     def extra_layout(self):
+        """The extra_layout widget"""
         return self.root.ids.extra_layout
 
     @property
-    def play_sound(self):
+    def sound_enabled(self):
         """If the app should play sound"""
-        return self._play_sound
+        return self._sound_enabled
 
-    @play_sound.setter
-    def play_sound(self, value):
+    @sound_enabled.setter
+    def sound_enabled(self, value):
+        """Try to convert value into a coherent bool"""
         if value is True:
-            self._play_sound = True
+            self._sound_enabled = True
         else:
             if isinstance(value, unicode):
                 unicode_value = value
@@ -113,22 +118,34 @@ class LearnYourPhoneApp(App):
 
             sound_settings_values = [u"0", u"1"]
             if unicode_value in sound_settings_values:
-                self._play_sound = bool(sound_settings_values.index(unicode_value))
+                self._sound_enabled = bool(sound_settings_values.index(unicode_value))
             else:
-                self._play_sound = bool(False)
+                self._sound_enabled = bool(False)
 
-    def add_digit_uix(self, digit, real_position, place):
-        relative_position = real_position / len(self.phone_number)
+    def add_digit_uix(self, digit, in_phone_position, uix_position):
+        """Create a uix for the digit and put it on the answer_layout
+
+        :param digit: the digit to show
+        :type digit: unicode
+        :param in_phone_position: the index of the digit in the phone number
+        :param uix_position: the random index where to put the uix
+        """
+        relative_position = in_phone_position / len(self.phone_number)
         digit_uix = MoveableDigit(text=digit,
-                                  font_size=self.BASE_FONT_SIZE + real_position * 2,
+                                  font_size=self.BASE_FONT_SIZE + in_phone_position * 2,
                                   color=hue_to_rgba(relative_position))
-        digit_uix.pos = [place * self.answer_layout.width / len(self.phone_number),
+        digit_uix.pos = [uix_position * self.answer_layout.width / len(self.phone_number),
                          self.answer_layout.height / 5]
-        digit_uix.bind(on_touch_up=self.validate_answers)
+        digit_uix.bind(on_touch_up=self.validate_answers)  # pylint: disable=no-member
         self.digits.append(digit_uix)
         self.answer_layout.add_widget(digit_uix)
 
-    def add_hint_uix(self, digit, position):
+    def add_answer_box(self, digit, position):
+        """Create an answer_box and puit it on the answer_layout
+
+        :param digit: the digit to validate
+        :param position: The index of the digit in the phone number
+        """
         relative_position = position / len(self.phone_number)
         hue = hue_to_rgba(relative_position, alpha=.5)
         hint_uix = AnswerBox(digit=digit, position=position,
@@ -141,6 +158,10 @@ class LearnYourPhoneApp(App):
         self.answer_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
+        """Initialize the screen to start a new game
+
+        :param phone_number: The phone number for the game
+        """
         self.digits = []
         self.answer_boxes = []
         self.answer_layout.clear_widgets()
@@ -157,26 +178,31 @@ class LearnYourPhoneApp(App):
             random.shuffle(random_position)
             for position, digit in enumerate(phone_number):
                 self.add_digit_uix(digit, position, random_position.pop())
-                self.add_hint_uix(digit, position)
+                self.add_answer_box(digit, position)
         else:
             self.message.text = "Please input your phone number in the settings."
 
     def initialize_from_config(self):
-        self.play_sound = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_SOUND)
+        """Start the game from information in the config"""
+        self.sound_enabled = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_SOUND)
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
         self.initialize_phone_guessing(phone_number)
 
     def digit_in_bad_place(self, digit_uix):
+        """Blink the digit_uix when it is now correctly place"""
         digit_uix.color = [1, 0, 0, 1]
         def reset_color(*_args):
+            """Reset the color of the digit_uix"""
             # Recalculating the color to be sure to have to correct color
             digit_uix.color = hue_to_rgba(self.digits.index(digit_uix) / len(self.phone_number))
         Clock.schedule_once(reset_color, 2)
 
     def replay(self, _instance):
+        """Restart the game"""
         self.initialize_from_config()
 
     def dancing(self, *_args):
+        """Make the digits "dance" (move up and down) to celebrate the completion"""
         for digit_uix in self.digits:
             move = random.randint(-digit_uix.height // 4, digit_uix.height // 4)
             digit_uix.y += move
@@ -186,14 +212,15 @@ class LearnYourPhoneApp(App):
                 digit_uix.top = digit_uix.parent.height
 
     def victory(self, *_args):
-        if self.play_sound and self.victory_sound:
+        """Celebrate the victory of the player"""
+        if self.sound_enabled and self.victory_sound:
             self.victory_sound.play()
         self.extra_layout.add_widget(self.replay_button)
         self.message.text = "You got your phone number right, yeah !"
-        Clock.schedule_interval(self.dancing, .5)
+        Clock.schedule_interval(self.dancing, 1)
 
     def validate_answers(self, instance, *_args):
-
+        """Validate if instance is correctly place within a answer_box"""
         for answer_box in self.answer_boxes:
             if instance.collide_widget(answer_box):
                 if instance.text == answer_box.digit and answer_box.current_answer is None:
@@ -215,26 +242,31 @@ class LearnYourPhoneApp(App):
 
 
     def build(self):
+        """Build the screen"""
         self.replay_button = Button(size_hint=(.2, 1),
                                     text="Replay")
-        self.replay_button.bind(on_press=self.replay)
+        self.replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
 
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
         self.victory_callback = Clock.create_trigger(self.victory)
         return super(LearnYourPhoneApp, self).build()
 
     def on_start(self):
+        """Delay the initialization of the game to be sure than the screen
+        have already resized."""
         starting = super(LearnYourPhoneApp, self).on_start()
         Clock.schedule_once(lambda _dt: self.initialize_from_config(), 2.75)
         return starting
 
     def build_config(self, config):
+        """Enable sound but without a phone"""
         config.setdefaults(SETTINGS_SECTION,
                            {SETTINGS_KEY_PHONE: "",
                             SETTINGS_KEY_SOUND: "1"})
         return super(LearnYourPhoneApp, self).build_config(config)
 
     def build_settings(self, settings):
+        """Add settings for the phone number and sound"""
         jsondata = """[
                        {{"type": "phone",
                          "title": "Phone number",
@@ -256,11 +288,12 @@ class LearnYourPhoneApp(App):
         return super(LearnYourPhoneApp, self).build_settings(settings)
 
     def on_config_change(self, config, section, key, value):
+        """When the phone number change, reinitialize the game"""
         if section == SETTINGS_SECTION:
             if key == SETTINGS_KEY_PHONE:
                 self.initialize_phone_guessing(value)
             elif key == SETTINGS_KEY_SOUND:
-                self.play_sound = value
+                self.sound_enabled = value
         return super(LearnYourPhoneApp, self).on_config_change(config, section, key, value)
 
 
