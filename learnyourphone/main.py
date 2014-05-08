@@ -77,14 +77,14 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     BASE_FONT_SIZE = 80
     
-    digits = None
-    answer_boxes = None
+    _digits = None
+    _answer_boxes = None
     phone_number = None
 
     victory = BooleanProperty(False)
     victory_sound = None
     
-    replay_button = None
+    _replay_button = None
     _sound_enabled = None
 
     
@@ -111,8 +111,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     @sound_enabled.setter
     def sound_enabled(self, value):
         """Try to convert value into a coherent bool"""
-        if value is True:
-            self._sound_enabled = True
+        if value in (True, False):
+            self._sound_enabled = value
         else:
             if isinstance(value, unicode):
                 unicode_value = value
@@ -125,6 +125,11 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                 self._sound_enabled = enabled
             else:
                 self._sound_enabled = bool(False)
+
+    def __init__(self, **kwargs):
+        super(LearnYourPhoneApp, self).__init__(**kwargs)
+        self._digits = []
+        self._answer_boxes = []
 
     def add_digit_uix(self, digit, in_phone_position, uix_position):
         """Create a uix for the digit and put it on the answer_layout
@@ -143,7 +148,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         digit_uix.pos = [pos_x,
                          self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)  # pylint: disable=no-member
-        self.digits.append(digit_uix)
+        self._digits.append(digit_uix)
         self.answer_layout.add_widget(digit_uix)
 
     def add_answer_box(self, digit, position):
@@ -161,7 +166,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                              pos_hint={"x": float(relative_position),
                                        "y": .5},
                              size_hint=[1 / len(self.phone_number), None])
-        self.answer_boxes.append(hint_uix)
+        self._answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
     def initialize_phone_guessing(self, phone_number):
@@ -169,19 +174,18 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
         :param phone_number: The phone number for the game
         """
-        self.digits = []
-        self.answer_boxes = []
-        self.answer_layout.clear_widgets()
-        self.extra_layout.remove_widget(self.replay_button)
         Clock.unschedule(self.dancing)
         self.victory = False
+        del self._digits[:]
+        del self._answer_boxes[:]
+        self.answer_layout.clear_widgets()
+        self.extra_layout.remove_widget(self._replay_button)
 
         self.phone_number = phone_number
 
         if phone_number:
             self.message.text = "Reorder the digits to form your phone number"
-            phone_length = len(phone_number)
-            random_position = range(phone_length)
+            random_position = range(len(phone_number))
             random.shuffle(random_position)
             for position, digit in enumerate(phone_number):
                 self.add_digit_uix(digit, position, random_position.pop())
@@ -203,7 +207,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         def reset_color(*_args):
             """Reset the color of the digit_uix"""
             # Recalculating the color to be sure to have to correct color
-            hue = self.digits.index(digit_uix) / len(self.phone_number)
+            hue = self._digits.index(digit_uix) / len(self.phone_number)
             digit_uix.color = hue_to_rgba(hue)
         Clock.schedule_once(reset_color, 2)
 
@@ -215,7 +219,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """Make the digits "dance" (move up and down) to celebrate the
         completion of the game.
         """
-        for digit_uix in self.digits:
+        for digit_uix in self._digits:
             step = digit_uix.height // 4
             move = random.randint(-step, step)
             digit_uix.y += move
@@ -229,18 +233,18 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         if value:
             if self.sound_enabled and self.victory_sound:
                 self.victory_sound.play()
-            self.extra_layout.add_widget(self.replay_button)
+            self.extra_layout.add_widget(self._replay_button)
             self.message.text = "You got your phone number right, yeah !"
             Clock.schedule_interval(self.dancing, 1)
 
     def check_victory(self):
         """Check if the game is completed"""
         is_fixed = lambda uix: uix.do_translation == (False, False)
-        self.victory = all(is_fixed(digit_uix) for digit_uix in self.digits)
+        self.victory = all(is_fixed(digit_uix) for digit_uix in self._digits)
 
     def validate_answers(self, instance, *_args):
         """Validate if instance is correctly place within a answer_box"""
-        for answer_box in self.answer_boxes:
+        for answer_box in self._answer_boxes:
             if instance.collide_widget(answer_box):
                 if (instance.text == answer_box.digit and
                         answer_box.current_answer is None):
@@ -260,9 +264,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     def build(self):
         """Build the screen"""
-        self.replay_button = Button(size_hint=(.2, 1),
-                                    text="Replay")
-        self.replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
+        self._replay_button = Button(size_hint=(.2, 1),
+                                     text="Replay")
+        self._replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')  # pylint: disable=line-too-long
         return super(LearnYourPhoneApp, self).build()
 
