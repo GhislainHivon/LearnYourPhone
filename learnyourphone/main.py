@@ -15,7 +15,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.metrics import dp
-from kivy.properties import (ListProperty, NumericProperty,
+from kivy.properties import (BooleanProperty,ListProperty, NumericProperty,
                              ObjectProperty, StringProperty)
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -75,19 +75,19 @@ class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods,t
 class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     """The app to learn your phone number"""
 
+    BASE_FONT_SIZE = 80
+    
     digits = None
     answer_boxes = None
     phone_number = None
 
+    victory = BooleanProperty(False)
     victory_sound = None
-    victory_callback = None
-    in_victory = False
-
+    
     replay_button = None
     _sound_enabled = None
 
-    BASE_FONT_SIZE = 80
-
+    
     @property
     def message(self):
         """The message widget"""
@@ -174,7 +174,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self.replay_button)
         Clock.unschedule(self.dancing)
-        self.in_victory = False
+        self.victory = False
 
         self.phone_number = phone_number
 
@@ -224,21 +224,19 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
             if digit_uix.top > digit_uix.parent.height:
                 digit_uix.top = digit_uix.parent.height
 
-    def victory(self, *_args):
+    def on_victory(self, _instance, value):
         """Celebrate the victory of the player"""
-        if self.sound_enabled and self.victory_sound:
-            self.victory_sound.play()
-        self.extra_layout.add_widget(self.replay_button)
-        self.message.text = "You got your phone number right, yeah !"
-        Clock.schedule_interval(self.dancing, 1)
+        if value:
+            if self.sound_enabled and self.victory_sound:
+                self.victory_sound.play()
+            self.extra_layout.add_widget(self.replay_button)
+            self.message.text = "You got your phone number right, yeah !"
+            Clock.schedule_interval(self.dancing, 1)
 
     def check_victory(self):
         """Check if the game is completed"""
         is_fixed = lambda uix: uix.do_translation == (False, False)
-        if all(is_fixed(digit_uix) for digit_uix in self.digits):
-            if not self.in_victory:
-                self.in_victory = True
-                self.victory_callback()
+        self.victory = all(is_fixed(digit_uix) for digit_uix in self.digits)
 
     def validate_answers(self, instance, *_args):
         """Validate if instance is correctly place within a answer_box"""
@@ -266,7 +264,6 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                                     text="Replay")
         self.replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')  # pylint: disable=line-too-long
-        self.victory_callback = Clock.create_trigger(self.victory)
         return super(LearnYourPhoneApp, self).build()
 
     def on_start(self):
