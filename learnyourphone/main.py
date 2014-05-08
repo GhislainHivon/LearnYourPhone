@@ -15,7 +15,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.metrics import dp
-from kivy.properties import (BooleanProperty,ListProperty, NumericProperty,
+from kivy.properties import (BooleanProperty, ListProperty, NumericProperty,
                              ObjectProperty, StringProperty)
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -76,18 +76,17 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     """The app to learn your phone number"""
 
     BASE_FONT_SIZE = 80
-    
+
     _digits = None
     _answer_boxes = None
     phone_number = None
 
     victory = BooleanProperty(False)
     victory_sound = None
-    
+
     _replay_button = None
     _sound_enabled = None
 
-    
     @property
     def message(self):
         """The message widget"""
