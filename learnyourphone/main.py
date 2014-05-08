@@ -146,7 +146,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         digit_uix = MoveableDigit(text=digit,
                                   font_size=font_size,
                                   color=hue_to_rgba(relative_position))
-        pos_x = uix_position * self.answer_layout.width / len(self.phone_number)
+        relative_position = uix_position / len(self.phone_number)
+        pos_x = relative_position * self.answer_layout.width
         digit_uix.pos = [pos_x,
                          self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)  # pylint: disable=no-member
@@ -171,7 +172,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self._answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
-    def on_phone_number(self, _instance, phone_number):
+
+
+    def start_game(self):
         """Start a new game or message to set phone_number"""
         Clock.unschedule(self.dancing)
         self.victory = False
@@ -180,22 +183,27 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self._replay_button)
 
-        if phone_number:
+        if self.phone_number:
             self.message.text = "Reorder the digits to form your phone number"
-            random_position = range(len(phone_number))
+            random_position = range(len(self.phone_number))
             random.shuffle(random_position)
-            for position, digit in enumerate(phone_number):
+            for position, digit in enumerate(self.phone_number):
                 self.add_digit_uix(digit, position, random_position.pop())
                 self.add_answer_box(digit, position)
         else:
             message = self.DO_SETUP_MESSAGE
             self.message.text = message
 
+    def on_phone_number(self, _instance, _value):
+        """On a change of phone number, a new game is needed"""
+        self.start_game()
+
     def initialize_from_config(self):
         """Start the game from information in the config"""
         self.sound_enabled = self.config.get(SETTINGS_SECTION,
                                              SETTINGS_KEY_SOUND)
-        self.phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
+        self.phone_number = self.config.get(SETTINGS_SECTION,
+                                            SETTINGS_KEY_PHONE)
 
     def digit_in_bad_place(self, digit_uix):
         """Blink the digit_uix when it is now correctly place"""
@@ -209,8 +217,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     def replay(self, _instance):
         """Restart the game"""
-        phone_property = self.property("phone_number")
-        phone_property.dispatch(self)
+        self.start_game()
 
     def dancing(self, *_args):
         """Make the digits "dance" (move up and down) to celebrate the
