@@ -14,6 +14,7 @@ import random
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.properties import (BooleanProperty, ListProperty, NumericProperty,
                              ObjectProperty, StringProperty)
@@ -90,6 +91,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     _replay_button = None
     _sound_enabled = None
 
+    _first_initialization = False
+
     @property
     def message(self):
         """The message widget"""
@@ -133,6 +136,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self._digits = []
         self._answer_boxes = []
 
+        # To be sure that the window has the correct size before the first setup
+        Window.bind(on_draw=self.initialize_from_config)
+
     def add_digit_uix(self, digit, in_phone_position, uix_position):
         """Create a uix for the digit and put it on the answer_layout
 
@@ -172,8 +178,6 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self._answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
-
-
     def start_game(self):
         """Start a new game or message to set phone_number"""
         Clock.unschedule(self.dancing)
@@ -198,12 +202,14 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """On a change of phone number, a new game is needed"""
         self.start_game()
 
-    def initialize_from_config(self):
-        """Start the game from information in the config"""
-        self.sound_enabled = self.config.get(SETTINGS_SECTION,
-                                             SETTINGS_KEY_SOUND)
-        self.phone_number = self.config.get(SETTINGS_SECTION,
-                                            SETTINGS_KEY_PHONE)
+    def initialize_from_config(self, *_args):
+        """Initialize information from config and 'indirectly' start a game"""
+        if not self._first_initialization:
+            self._first_initialization = True
+            self.sound_enabled = self.config.get(SETTINGS_SECTION,
+                                                 SETTINGS_KEY_SOUND)
+            self.phone_number = self.config.get(SETTINGS_SECTION,
+                                                SETTINGS_KEY_PHONE)
 
     def digit_in_bad_place(self, digit_uix):
         """Blink the digit_uix when it is now correctly place"""
@@ -273,13 +279,6 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self._replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
         self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')  # pylint: disable=line-too-long
         return super(LearnYourPhoneApp, self).build()
-
-    def on_start(self):
-        """Delay the initialization of the game to be sure than the screen
-        have already resized."""
-        starting = super(LearnYourPhoneApp, self).on_start()
-        Clock.schedule_once(lambda _dt: self.initialize_from_config(), 2.75)
-        return starting
 
     def build_config(self, config):
         """Enable sound but without a phone"""
