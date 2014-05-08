@@ -62,10 +62,11 @@ class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods,t
         value.input_type = "number"
 
     def _validate(self, _instance):
-        """Ensure that the textinput.text containt only digits"""
+        """Ensure that the textinput.text containt only digits or is empty."""
         self._dismiss()
         value = self.textinput.text.strip()
-        if value.isdigit():
+        empty_or_digits = not value or value.isdigit()
+        if empty_or_digits:
             self.value = value
         else:
             #The kivy way is to do nothing
@@ -76,9 +77,11 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     """The app to learn your phone number"""
 
     BASE_FONT_SIZE = 80
+    DO_SETUP_MESSAGE = "Please input your phone number in the settings."
 
     _digits = None
     _answer_boxes = None
+
     phone_number = StringProperty()
 
     victory = BooleanProperty(False)
@@ -185,7 +188,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                 self.add_digit_uix(digit, position, random_position.pop())
                 self.add_answer_box(digit, position)
         else:
-            message = "Please input your phone number in the settings."
+            message = self.DO_SETUP_MESSAGE
             self.message.text = message
 
     def initialize_from_config(self):
