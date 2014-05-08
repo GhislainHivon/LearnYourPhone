@@ -15,7 +15,8 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
 from kivy.metrics import dp
-from kivy.properties import  ListProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import (ListProperty, NumericProperty,
+                             ObjectProperty, StringProperty)
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.settings import SettingString
@@ -29,7 +30,7 @@ SETTINGS_KEY_SOUND = "sound"
 
 def hue_to_rgba(hue, alpha=1):
     """Transform a hue into a rgba color. Saturation and value are fixed"""
-    # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html
+    # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html  # pylint: disable=line-too-long
     rgb = list(colorsys.hsv_to_rgb(hue, .5, 1))
     rgb.append(alpha)
     return rgb
@@ -43,7 +44,9 @@ class MoveableDigit(Scatter):  # pylint: disable=too-many-public-methods
 
 
 class AnswerBox(Label):  # pylint: disable=too-many-public-methods
-    """A box-like label to validate if a MoveableDigit is in the correct place"""
+    """A box-like label to validate if a MoveableDigit is in the correct
+    place
+    """
     background_color = ListProperty([0, 0, 0, 1])
     digit = StringProperty("")
     position = NumericProperty()
@@ -51,7 +54,7 @@ class AnswerBox(Label):  # pylint: disable=too-many-public-methods
     current_answer = ObjectProperty()
 
 
-class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods
+class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods,too-many-ancestors
     """Only accept digit for phone number"""
 
     def on_textinput(self, _instance, value):  # pylint: disable=no-self-use
@@ -118,7 +121,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
             sound_settings_values = [u"0", u"1"]
             if unicode_value in sound_settings_values:
-                self._sound_enabled = bool(sound_settings_values.index(unicode_value))
+                enabled = bool(sound_settings_values.index(unicode_value))
+                self._sound_enabled = enabled
             else:
                 self._sound_enabled = bool(False)
 
@@ -131,10 +135,12 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         :param uix_position: the random index where to put the uix
         """
         relative_position = in_phone_position / len(self.phone_number)
+        font_size = self.BASE_FONT_SIZE + in_phone_position * 2
         digit_uix = MoveableDigit(text=digit,
-                                  font_size=self.BASE_FONT_SIZE + in_phone_position * 2,
+                                  font_size=font_size,
                                   color=hue_to_rgba(relative_position))
-        digit_uix.pos = [uix_position * self.answer_layout.width / len(self.phone_number),
+        pos_x = uix_position * self.answer_layout.width / len(self.phone_number)
+        digit_uix.pos = [pos_x,
                          self.answer_layout.height / 5]
         digit_uix.bind(on_touch_up=self.validate_answers)  # pylint: disable=no-member
         self.digits.append(digit_uix)
@@ -152,7 +158,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                              phone_length=len(self.phone_number),
                              font_size=self.BASE_FONT_SIZE,
                              background_color=hue,
-                             pos_hint={"x": float(relative_position), "y": .5},
+                             pos_hint={"x": float(relative_position),
+                                       "y": .5},
                              size_hint=[1 / len(self.phone_number), None])
         self.answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
@@ -180,11 +187,13 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                 self.add_digit_uix(digit, position, random_position.pop())
                 self.add_answer_box(digit, position)
         else:
-            self.message.text = "Please input your phone number in the settings."
+            message = "Please input your phone number in the settings."
+            self.message.text = message
 
     def initialize_from_config(self):
         """Start the game from information in the config"""
-        self.sound_enabled = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_SOUND)
+        self.sound_enabled = self.config.get(SETTINGS_SECTION,
+                                             SETTINGS_KEY_SOUND)
         phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
         self.initialize_phone_guessing(phone_number)
 
@@ -194,7 +203,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         def reset_color(*_args):
             """Reset the color of the digit_uix"""
             # Recalculating the color to be sure to have to correct color
-            digit_uix.color = hue_to_rgba(self.digits.index(digit_uix) / len(self.phone_number))
+            hue = self.digits.index(digit_uix) / len(self.phone_number)
+            digit_uix.color = hue_to_rgba(hue)
         Clock.schedule_once(reset_color, 2)
 
     def replay(self, _instance):
@@ -202,9 +212,12 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self.initialize_from_config()
 
     def dancing(self, *_args):
-        """Make the digits "dance" (move up and down) to celebrate the completion"""
+        """Make the digits "dance" (move up and down) to celebrate the
+        completion of the game.
+        """
         for digit_uix in self.digits:
-            move = random.randint(-digit_uix.height // 4, digit_uix.height // 4)
+            step = digit_uix.height // 4
+            move = random.randint(-step, step)
             digit_uix.y += move
             if digit_uix.y < 0:
                 digit_uix.y = 0
@@ -223,7 +236,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """Validate if instance is correctly place within a answer_box"""
         for answer_box in self.answer_boxes:
             if instance.collide_widget(answer_box):
-                if instance.text == answer_box.digit and answer_box.current_answer is None:
+                if (instance.text == answer_box.digit and
+                        answer_box.current_answer is None):
                     instance.do_translation = False
                     answer_box.current_answer = instance
                     answer_box.background_color = [0, 0, 0, 1]
@@ -235,7 +249,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                     self.digit_in_bad_place(instance)
                     break
 
-        if all(digit_uix.do_translation == (False, False) for digit_uix in self.digits):
+        if all(digit_uix.do_translation == (False, False)
+               for digit_uix in self.digits):
             if not self.in_victory:
                 self.in_victory = True
                 self.victory_callback()
@@ -246,8 +261,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self.replay_button = Button(size_hint=(.2, 1),
                                     text="Replay")
         self.replay_button.bind(on_press=self.replay)  # pylint: disable=no-member
-
-        self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')
+        self.victory_sound = SoundLoader.load('177120__rdholder__2dogsound-tadaa1-3s-2013jan31-cc-by-30-us.wav')  # pylint: disable=line-too-long
         self.victory_callback = Clock.create_trigger(self.victory)
         return super(LearnYourPhoneApp, self).build()
 
@@ -284,7 +298,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                                   key_number=SETTINGS_KEY_PHONE,
                                   key_sound=SETTINGS_KEY_SOUND)
         settings.register_type("phone", SettingsPhone)
-        settings.add_json_panel('Learn your phone', self.config, data=jsondata)
+        settings.add_json_panel('Learn your phone',
+                                self.config, data=jsondata)
         return super(LearnYourPhoneApp, self).build_settings(settings)
 
     def on_config_change(self, config, section, key, value):
@@ -294,7 +309,10 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                 self.initialize_phone_guessing(value)
             elif key == SETTINGS_KEY_SOUND:
                 self.sound_enabled = value
-        return super(LearnYourPhoneApp, self).on_config_change(config, section, key, value)
+        return super(LearnYourPhoneApp, self).on_config_change(config,
+                                                               section,
+                                                               key,
+                                                               value)
 
 
 if __name__ == '__main__':
