@@ -79,7 +79,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     _digits = None
     _answer_boxes = None
-    phone_number = None
+    phone_number = StringProperty()
 
     victory = BooleanProperty(False)
     victory_sound = None
@@ -168,19 +168,14 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self._answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
-    def initialize_phone_guessing(self, phone_number):
-        """Initialize the screen to start a new game
-
-        :param phone_number: The phone number for the game
-        """
+    def on_phone_number(self, _instance, phone_number):
+        """Start a new game or message to set phone_number"""
         Clock.unschedule(self.dancing)
         self.victory = False
         del self._digits[:]
         del self._answer_boxes[:]
         self.answer_layout.clear_widgets()
         self.extra_layout.remove_widget(self._replay_button)
-
-        self.phone_number = phone_number
 
         if phone_number:
             self.message.text = "Reorder the digits to form your phone number"
@@ -197,8 +192,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """Start the game from information in the config"""
         self.sound_enabled = self.config.get(SETTINGS_SECTION,
                                              SETTINGS_KEY_SOUND)
-        phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
-        self.initialize_phone_guessing(phone_number)
+        self.phone_number = self.config.get(SETTINGS_SECTION, SETTINGS_KEY_PHONE)
 
     def digit_in_bad_place(self, digit_uix):
         """Blink the digit_uix when it is now correctly place"""
@@ -212,7 +206,8 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     def replay(self, _instance):
         """Restart the game"""
-        self.initialize_from_config()
+        phone_property = self.property("phone_number")
+        phone_property.dispatch(self)
 
     def dancing(self, *_args):
         """Make the digits "dance" (move up and down) to celebrate the
@@ -310,7 +305,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """When the phone number change, reinitialize the game"""
         if section == SETTINGS_SECTION:
             if key == SETTINGS_KEY_PHONE:
-                self.initialize_phone_guessing(value)
+                self.phone_number = value
             elif key == SETTINGS_KEY_SOUND:
                 self.sound_enabled = value
         return super(LearnYourPhoneApp, self).on_config_change(config,
