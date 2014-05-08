@@ -2,9 +2,6 @@
 
 """Main for the Learn Your Phone app"""
 
-# To check :
-# https://mail.python.org/pipermail/python-list/2008-February/494675.html
-
 from __future__ import division
 from __future__ import unicode_literals
 
@@ -35,6 +32,16 @@ def hue_to_rgba(hue, alpha=1):
     rgb = list(colorsys.hsv_to_rgb(hue, .5, 1))
     rgb.append(alpha)
     return rgb
+
+
+def true_boolean(value):
+    """Convert the string value from a SettingBoolean to a true bool"""
+    value = str(value)
+    sound_settings_values = [b"0", b"1"]
+    if value in sound_settings_values:
+        return bool(sound_settings_values.index(value))
+    else:
+        return False
 
 
 class MoveableDigit(Scatter):  # pylint: disable=too-many-public-methods
@@ -87,9 +94,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
 
     victory = BooleanProperty(False)
     victory_sound = None
+    sound_enabled = BooleanProperty(True)
 
     _replay_button = None
-    _sound_enabled = None
 
     _first_initialization = False
 
@@ -107,29 +114,6 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     def extra_layout(self):
         """The extra_layout widget"""
         return self.root.ids.extra_layout
-
-    @property
-    def sound_enabled(self):
-        """If the app should play sound"""
-        return self._sound_enabled
-
-    @sound_enabled.setter
-    def sound_enabled(self, value):
-        """Try to convert value into a coherent bool"""
-        if value in (True, False):
-            self._sound_enabled = value
-        else:
-            if isinstance(value, unicode):
-                unicode_value = value
-            else:
-                unicode_value = unicode(value, errors="ignore")
-
-            sound_settings_values = [u"0", u"1"]
-            if unicode_value in sound_settings_values:
-                enabled = bool(sound_settings_values.index(unicode_value))
-                self._sound_enabled = enabled
-            else:
-                self._sound_enabled = bool(False)
 
     def __init__(self, **kwargs):
         super(LearnYourPhoneApp, self).__init__(**kwargs)
@@ -206,8 +190,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         """Initialize information from config and 'indirectly' start a game"""
         if not self._first_initialization:
             self._first_initialization = True
-            self.sound_enabled = self.config.get(SETTINGS_SECTION,
+            sound_settings_value = self.config.get(SETTINGS_SECTION,
                                                  SETTINGS_KEY_SOUND)
+            self.sound_enabled = true_boolean(sound_settings_value)
             self.phone_number = self.config.get(SETTINGS_SECTION,
                                                 SETTINGS_KEY_PHONE)
 
@@ -316,7 +301,9 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
             if key == SETTINGS_KEY_PHONE:
                 self.phone_number = value
             elif key == SETTINGS_KEY_SOUND:
-                self.sound_enabled = value
+                sound_settings_value = self.config.get(SETTINGS_SECTION,
+                                                       SETTINGS_KEY_SOUND)
+                self.sound_enabled = true_boolean(sound_settings_value)
         return super(LearnYourPhoneApp, self).on_config_change(config,
                                                                section,
                                                                key,
