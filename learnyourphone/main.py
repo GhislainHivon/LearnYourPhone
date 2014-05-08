@@ -232,6 +232,14 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         self.message.text = "You got your phone number right, yeah !"
         Clock.schedule_interval(self.dancing, 1)
 
+    def check_victory(self):
+        """Check if the game is completed"""
+        is_fixed = lambda uix: uix.do_translation == (False, False)
+        if all(is_fixed(digit_uix) for digit_uix in self.digits):
+            if not self.in_victory:
+                self.in_victory = True
+                self.victory_callback()
+
     def validate_answers(self, instance, *_args):
         """Validate if instance is correctly place within a answer_box"""
         for answer_box in self.answer_boxes:
@@ -247,14 +255,10 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
                     break
                 else:
                     self.digit_in_bad_place(instance)
-                    break
+                    # No need to check for victory
+                    return
 
-        if all(digit_uix.do_translation == (False, False)
-               for digit_uix in self.digits):
-            if not self.in_victory:
-                self.in_victory = True
-                self.victory_callback()
-
+        self.check_victory()
 
     def build(self):
         """Build the screen"""
