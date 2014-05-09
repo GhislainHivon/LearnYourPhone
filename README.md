@@ -6,7 +6,7 @@ There is no special installations needed for "Learn your phone". Follow the inst
 
 ### My target
 #### Android 4.3 (Samsung Galaxy S3)
-I used the [Kivy launcher](http://kivy.org/docs/guide/packaging-android.html#packaging-your-application-for-kivy-launcher) 
+I used the [Kivy launcher](http://kivy.org/docs/guide/packaging-android.html#packaging-your-application-for-kivy-launcher)
 
 ### How I tested "Learn your phone"
 #### Windows 7
@@ -29,7 +29,7 @@ You can enter any string of digits as your phone number. No minimum needed (but 
 
 ### Hints
 #### Color
-I used soft, pastel color for the digits and their corresponding box. Also, the color are always assign in the same way, aka the first number is alway red, then going toward yellow, green, blue before returning towards red. 
+I used soft, pastel color for the digits and their corresponding box. Also, the color are always assign in the same way, aka the first number is alway red, then going toward yellow, green, blue before returning towards red.
 #### Font size
 Small digits start on the left and big digits finish on the right
 
@@ -38,7 +38,7 @@ I think that a child should not be penalized if she remember the correct order f
 
 ## Limitations
 ### Apparent size vs Widget size
-The active zone for a digit is bigger than the colored area. It's possible to have a digit a little outside of the box but it will still count as in the box for validation.
+The active zone for a digit is bigger than the colored area. It's possible to have a digit a little outside of the box but it will still count as in the box for validation. I tried to balance the easiness of used with correct behavior.
 
 ### Overlaps of digits
 Digits can be place and frozen one on top of the other. But I think that most of the time (under 12 digits), this is not a major hindrance to correctly guess which digit is the first.
@@ -53,5 +53,5 @@ This is a list of features that I will probably add after the contest end and if
     + Vibrating the phone when the digit is in a good box
     + Flashing the answer in the box
 + More sounds
-    + Voicing the phone number on victory 
+    + Voicing the phone number on victory
     + Or on demand as a hint
