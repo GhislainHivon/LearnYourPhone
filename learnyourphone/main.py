@@ -1,6 +1,13 @@
 # encoding: utf-8
 
-"""Main for the Learn Your Phone app"""
+"""Main for the Learn Your Phone app
+
+The game is for young child. They must reorder the digits to form their
+phone number. The digit must be place into the colored box with the same
+color (the box alpha is lower). When they succeed, the box disappear and the 
+digit is frozen in place. When all the digits are correctly place, a simple
+"Tada sound" (see LICENSE for details) can be heard and the digits "dance".
+"""
 
 # Some pylint warnings that are not usefuls for now:
 # they prevent a 10/10 pylint score
