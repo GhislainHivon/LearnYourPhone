@@ -2,6 +2,16 @@
 
 """Main for the Learn Your Phone app"""
 
+# Some pylint warnings that are not usefuls for now:
+# they prevent a 10/10 pylint score
+# pylint: disable=too-many-public-methods
+# pylint: disable=too-many-ancestors
+# pylint: disable=too-many-instance-attributes
+
+# This one is useful, but I prefer to give a name (with a leading underscore)
+# to unused arguments instead of just a single underscore
+# pylint: disable=unused-argument
+
 from __future__ import division
 from __future__ import unicode_literals
 
@@ -44,14 +54,14 @@ def true_boolean(value):
         return False
 
 
-class MoveableDigit(Scatter):  # pylint: disable=too-many-public-methods
+class MoveableDigit(Scatter):
     """Show a digit (not enforce) to be move around."""
     color = ListProperty([1, 1, 1, 1])
     text = StringProperty("")
     font_size = NumericProperty(dp(12))
 
 
-class AnswerBox(Label):  # pylint: disable=too-many-public-methods
+class AnswerBox(Label):
     """A box-like label to validate if a MoveableDigit is in the correct
     place
     """
@@ -62,7 +72,7 @@ class AnswerBox(Label):  # pylint: disable=too-many-public-methods
     current_answer = ObjectProperty()
 
 
-class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods,too-many-ancestors
+class SettingsPhone(SettingString):
     """Only accept digit for phone number"""
 
     def on_textinput(self, _instance, value):  # pylint: disable=no-self-use
@@ -77,11 +87,11 @@ class SettingsPhone(SettingString):  # pylint: disable=too-many-public-methods,t
         if empty_or_digits:
             self.value = value
         else:
-            #The kivy way is to do nothing
+            # The kivy way is to do nothing
             return
 
 
-class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
+class LearnYourPhoneApp(App):
     """The app to learn your phone number"""
 
     BASE_FONT_SIZE = 80
@@ -191,7 +201,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
         if not self._first_initialization:
             self._first_initialization = True
             sound_settings_value = self.config.get(SETTINGS_SECTION,
-                                                 SETTINGS_KEY_SOUND)
+                                                   SETTINGS_KEY_SOUND)
             self.sound_enabled = true_boolean(sound_settings_value)
             self.phone_number = self.config.get(SETTINGS_SECTION,
                                                 SETTINGS_KEY_PHONE)
@@ -199,6 +209,7 @@ class LearnYourPhoneApp(App):  # pylint: disable=too-many-public-methods
     def digit_in_bad_place(self, digit_uix):
         """Blink the digit_uix when it is now correctly place"""
         digit_uix.color = [1, 0, 0, 1]
+
         def reset_color(*_args):
             """Reset the color of the digit_uix"""
             # Recalculating the color to be sure to have to correct color
