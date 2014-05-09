@@ -17,12 +17,10 @@ BoxLayout:
 <MoveableDigit>:
     do_rotation: False
     do_scale: False
-    size: digit.size
+    size: digit.width + 3, digit.height
     size_hint: None, None
     Label:
         id: digit
-        pos_hint: None, None
-        size_hint: None, None
         size: self.texture_size
         text: self.parent.text
         color: self.parent.color
