@@ -23,14 +23,13 @@ BoxLayout:
         id: digit
         pos_hint: None, None
         size_hint: None, None
-        text_size: self.size
+        size: self.texture_size
         text: self.parent.text
         color: self.parent.color
         font_size: self.parent.font_size
 
 <AnswerBox>:
-    text_size: self.size
-    canvas.before:
+    canvas.after:
         Color:
             rgba: self.background_color
         Rectangle:
