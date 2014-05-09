@@ -4,7 +4,7 @@
 
 The game is for young child. They must reorder the digits to form their
 phone number. The digit must be place into the colored box with the same
-color (the box alpha is lower). When they succeed, the box disappear and the 
+color (the box alpha is lower). When they succeed, the box disappear and the
 digit is frozen in place. When all the digits are correctly place, a simple
 "Tada sound" (see LICENSE for details) can be heard and the digits "dance".
 """
@@ -257,6 +257,7 @@ class LearnYourPhoneApp(App):
 
     def validate_answers(self, instance, *_args):
         """Validate if instance is correctly place within a answer_box"""
+        in_a_box = False
         for answer_box in self._answer_boxes:
             if instance.collide_widget(answer_box):
                 if (instance.text == answer_box.digit and
@@ -265,13 +266,16 @@ class LearnYourPhoneApp(App):
                     answer_box.current_answer = instance
                     answer_box.background_color = [0, 0, 0, 1]
                     break
-                if answer_box.current_answer is instance:
+                elif answer_box.current_answer is instance:
                     # Already answered...
                     break
                 else:
-                    self.digit_in_bad_place(instance)
-                    # No need to check for victory
-                    return
+                    in_a_box = True
+        else:
+            if in_a_box:
+                self.digit_in_bad_place(instance)
+                # No need to check for victory
+                return
 
         self.check_victory()
 
