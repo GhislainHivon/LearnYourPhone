@@ -50,8 +50,8 @@ This is a list of features that I will probably add after the contest end and if
 + Settings to remove hints (color, size)
 + Settings to deactivate regional code (the X first digits are not showed)
 + More hints
-  + Vibrating the phone when the digit is in a good box
-  + Flashing the answer in the box
+    + Vibrating the phone when the digit is in a good box
+    + Flashing the answer in the box
 + More sounds
-  + Voicing the phone number on victory 
-  + Or on demand as a hint
+    + Voicing the phone number on victory 
+    + Or on demand as a hint
