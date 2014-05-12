@@ -2,7 +2,7 @@
 A simple app to help children learn their phone number. The child must place the digits in a box with the same color (the box alpha is lower). When a digit is place in the correct box, it disappear and the digit is frozen in place. When all the digits are correctly place, a simple "Tada sound" (see LICENSE for details) can be heard and the digits "dance". The child can restart the game and play again.
 
 ## Installation and running
-There is no special installations needed for "Learn your phone". Follow the instructions to install [Kivy](http://kivy.org/#download) for your os. Run "Learn your phone" as any other Kivy app on your os.
+There is no special installations needed for "Learn your phone". Follow the instructions to install [Kivy](http://kivy.org/#download) for your os. Run **learnyourphone/main.py** as any other Kivy app on your os.
 
 ### My target
 #### Android 4.3 (Samsung Galaxy S3)
@@ -55,3 +55,8 @@ This is a list of features that I will probably add after the contest end and if
 + More sounds
     + Voicing the phone number on victory
     + Or on demand as a hint
+    
+## Official repository
+The official repository is the one on [bitbucket](https://bitbucket.org/GhislainHivon/learnyourphone).
+
+The repository on github will be erased after the kivy contest
