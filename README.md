@@ -4,24 +4,14 @@ A simple app to help children learn their phone number. The child must place the
 ## Installation and running
 There is no special installations needed for "Learn your phone". Follow the instructions to install [Kivy](http://kivy.org/#download) for your os. Run **learnyourphone/main.py** as any other Kivy app on your os.
 
-### My target
-#### Android 4.3 (Samsung Galaxy S3)
-I used the [Kivy launcher](http://kivy.org/docs/guide/packaging-android.html#packaging-your-application-for-kivy-launcher)
-
-### How I tested "Learn your phone"
-#### Windows 7
-I used the [portable version](http://kivy.org/docs/installation/installation-windows.html#installing-the-portable-version)
-#### Linux
-##### Ubuntu 14.10
-I used the [software package](http://kivy.org/docs/installation/installation-linux.html#ubuntu-kubuntu-xubuntu-lubuntu-oneiric-and-above)
-##### Fedora 17
-By [providing dependencies](http://kivy.org/docs/installation/installation-linux.html#providing-dependencies)
+### My target OS
+I targeted [Kivy launcher](http://kivy.org/docs/guide/packaging-android.html#packaging-your-application-for-kivy-launcher) as my main platform. Dragging digits is funnier on a touch enabled divised.
 
 ### First run
-On the first run, you need to enter your phone number in the settings to be able to play the game.
+On the first run, you need to enter your phone number in the settings to be able to play the game. 
 
 ### Subsequent runs
-If the phone number is define in the settings, "Learn your phone" will start directly with the game ready to play.
+If the phone number is already define in the settings, "Learn your phone" will start with a game ready.
 
 ## Features
 ### Digits only
@@ -30,6 +20,7 @@ You can enter any string of digits as your phone number. No minimum needed (but 
 ### Hints
 #### Color
 I used soft, pastel color for the digits and their corresponding box. Also, the color are always assign in the same way, aka the first number is alway red, then going toward yellow, green, blue before returning towards red.
+
 #### Font size
 Small digits start on the left and big digits finish on the right
 
