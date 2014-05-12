@@ -9,7 +9,7 @@ digit is frozen in place. When all the digits are correctly place, a simple
 "Tada sound" (see LICENSE for details) can be heard and the digits "dance".
 """
 
-# Some pylint warnings that are not usefuls for now:
+# Some pylint warnings that are not useful with the kivy api:
 # they prevent a 10/10 pylint score
 # pylint: disable=too-many-public-methods
 # pylint: disable=too-many-ancestors
@@ -175,7 +175,7 @@ class LearnYourPhoneApp(App):
                              background_color=hue,
                              pos_hint={"x": float(relative_position),
                                        "y": .5},
-                             size_hint=[1 / len(self.phone_number)- .01, None])
+                             size_hint=[1 / len(self.phone_number) - .01, None])
         self._answer_boxes.append(hint_uix)
         self.answer_layout.add_widget(hint_uix)
 
