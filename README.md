@@ -2,8 +2,10 @@
 A simple app to help children learn their phone number. The child must place the digits in a box with the same color (the box alpha is lower). When a digit is place in the correct box, it disappear and the digit is frozen in place. When all the digits are correctly place, a simple "Tada sound" (see LICENSE for details) can be heard and the digits "dance". The child can restart the game and play again.
 
 ![A screenshot of a new game of "Learn your phone"](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/new_game.png "New game of Learn your phone")
+
 ![A screenshot of a game in progression](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/partial_game.png "Game in progress")
-![A screenshot of a wrongly place digit](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/digit_in_wrong_palce.png "In the wrong place")
+
+![A screenshot of a wrongly place digit](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/digit_in_wrong_place.png "In the wrong place")
 
 ## Installation and running
 There is no special installations needed for "Learn your phone". Follow the instructions to install [Kivy](http://kivy.org/#download) for your os. Run **learnyourphone/main.py** as any other Kivy app on your os.
@@ -13,7 +15,8 @@ I targeted [Kivy launcher](http://kivy.org/docs/guide/packaging-android.html#pac
 
 ### First run
 On the first run, you need to enter your phone number in the settings to be able to play the game.
-![A screenshot of the settings](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/new_game.png "Settings")
+
+![A screenshot of the settings](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/settings.png "Settings")
 
 ### Subsequent runs
 If the phone number is already define in the settings, "Learn your phone" will start with a game ready.
@@ -35,11 +38,13 @@ I think that a child should not be penalized if she remember the correct order f
 ## Limitations
 ### Apparent size vs Widget size
 The active zone for a digit is bigger than the colored area. It's possible to have a digit a little outside of the box but it will still count as in the box for validation. I tried to balance the easiness of used with correct behavior.
+
 ![Showing the dragable area of digits](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/apparent_size/new_game.png "Showing the dragable area of digits")
 
 
 ### Overlaps of digits
 Digits can be place and frozen one on top of the other. But I think that most of the time (under 12 digits), this is not a major hindrance to correctly guess which digit is the first.
+
 ![Showing overlapping digits](https://bitbucket.org/GhislainHivon/learnyourphone/raw/default/screenshots/apparent_size/overlaps.png "Showing overlapping digits")
 
 ## Future
