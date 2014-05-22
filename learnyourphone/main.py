@@ -137,10 +137,10 @@ class LearnYourPhoneApp(App):
         # To be sure that the window has the correct size before the first setup
         Window.bind(on_draw=self.initialize_from_config)
 
-    def color_from_position(self, position, alpha=1):
+    def color_from_position(self, position, alpha=1, force_color=False):
         """Get the color for the corresponding position"""
 
-        if self.hint_color:
+        if self.hint_color or force_color:
             rgb = list(colorsys.hsv_to_rgb(position, .5, 1))
             rgb.append(alpha)
             return rgb
@@ -255,7 +255,10 @@ class LearnYourPhoneApp(App):
         """Make the digits "dance" (move up and down) to celebrate the
         completion of the game.
         """
-        for digit_uix in self._digits:
+        for position, digit_uix in enumerate(self._digits):
+            color = self.color_from_position(position / len(self._digits),
+                                             force_color=True)
+            digit_uix.color = color
             step = digit_uix.height // 4
             move = random.randint(-step, step)
             digit_uix.y += move
