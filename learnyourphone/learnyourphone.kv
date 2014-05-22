@@ -27,6 +27,7 @@ BoxLayout:
         font_size: self.parent.font_size
 
 <AnswerBox>:
+    answered: self.correct_digit_uix is not None
     canvas.after:
         Color:
             rgba: self.background_color

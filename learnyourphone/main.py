@@ -41,14 +41,9 @@ from kivy.uix.scatter import Scatter
 SETTINGS_SECTION = "Learn your phone"
 SETTINGS_KEY_PHONE = "number"
 SETTINGS_KEY_SOUND = "sound"
+SETTINGS_KEY_COLOR = "color"
 
-
-def hue_to_rgba(hue, alpha=1):
-    """Transform a hue into a rgba color. Saturation and value are fixed"""
-    # Mostly inspired by https://mail.python.org/pipermail/python-list/2008-February/494675.html  # pylint: disable=line-too-long
-    rgb = list(colorsys.hsv_to_rgb(hue, .5, 1))
-    rgb.append(alpha)
-    return rgb
+DEFAULT_ANSWER_BOX_ALPHA = .5
 
 
 def true_boolean(value):
@@ -76,7 +71,7 @@ class AnswerBox(Label):
     digit = StringProperty("")
     position = NumericProperty()
     phone_length = NumericProperty()
-    current_answer = ObjectProperty()
+    correct_digit_uix = ObjectProperty()
 
 
 class SettingsPhone(SettingString):
@@ -113,6 +108,8 @@ class LearnYourPhoneApp(App):
     victory_sound = None
     sound_enabled = BooleanProperty(True)
 
+    hint_color = BooleanProperty(True)
+
     _replay_button = None
 
     _first_initialization = False
@@ -140,6 +137,17 @@ class LearnYourPhoneApp(App):
         # To be sure that the window has the correct size before the first setup
         Window.bind(on_draw=self.initialize_from_config)
 
+    def color_from_position(self, position, alpha=1):
+        """Get the color for the corresponding position"""
+
+        if self.hint_color:
+            rgb = list(colorsys.hsv_to_rgb(position, .5, 1))
+            rgb.append(alpha)
+            return rgb
+        else:
+            #Default white
+            return [1, 1, 1, alpha]
+
     def add_digit_uix(self, digit, in_phone_position, uix_position):
         """Create a uix for the digit and put it on the answer_layout
 
@@ -150,9 +158,10 @@ class LearnYourPhoneApp(App):
         """
         relative_position = in_phone_position / len(self.phone_number)
         font_size = self.BASE_FONT_SIZE + in_phone_position * 2
+        color = self.color_from_position(relative_position)
         digit_uix = MoveableDigit(text=digit,
                                   font_size=font_size,
-                                  color=hue_to_rgba(relative_position))
+                                  color=color)
         relative_position = uix_position / len(self.phone_number)
         pos_x = relative_position * self.answer_layout.width
         digit_uix.pos = [pos_x,
@@ -168,11 +177,12 @@ class LearnYourPhoneApp(App):
         :param position: The index of the digit in the phone number
         """
         relative_position = position / len(self.phone_number)
-        hue = hue_to_rgba(relative_position, alpha=.5)
+        color = self.color_from_position(relative_position,
+                                         alpha=DEFAULT_ANSWER_BOX_ALPHA)
         hint_uix = AnswerBox(digit=digit, position=position,
                              phone_length=len(self.phone_number),
                              font_size=self.BASE_FONT_SIZE,
-                             background_color=hue,
+                             background_color=color,
                              pos_hint={"x": float(relative_position),
                                        "y": .5},
                              size_hint=[1 / len(self.phone_number) - .01, None])
@@ -203,6 +213,16 @@ class LearnYourPhoneApp(App):
         """On a change of phone number, a new game is needed"""
         self.start_game()
 
+    def on_hint_color(self, _instance, _value):
+        for i, answer_box in enumerate(self._answer_boxes):
+            if not answer_box.answered:
+                color = self.color_from_position(i / len(self._answer_boxes),
+                                                 DEFAULT_ANSWER_BOX_ALPHA)
+                answer_box.background_color = color
+
+        for i, digit in enumerate(self._digits):
+            digit.color = self.color_from_position(i / len(self._digits))
+
     def initialize_from_config(self, *_args):
         """Initialize information from config and 'indirectly' start a game"""
         if not self._first_initialization:
@@ -210,6 +230,9 @@ class LearnYourPhoneApp(App):
             sound_settings_value = self.config.get(SETTINGS_SECTION,
                                                    SETTINGS_KEY_SOUND)
             self.sound_enabled = true_boolean(sound_settings_value)
+            hint_color_settings_value = self.config.get(SETTINGS_SECTION,
+                                                        SETTINGS_KEY_COLOR)
+            self.hint_color = true_boolean(hint_color_settings_value)
             self.phone_number = self.config.get(SETTINGS_SECTION,
                                                 SETTINGS_KEY_PHONE)
 
@@ -221,7 +244,7 @@ class LearnYourPhoneApp(App):
             """Reset the color of the digit_uix"""
             # Recalculating the color to be sure to have to correct color
             hue = self._digits.index(digit_uix) / len(self.phone_number)
-            digit_uix.color = hue_to_rgba(hue)
+            digit_uix.color = self.color_from_position(hue)
         Clock.schedule_once(reset_color, 2)
 
     def replay(self, _instance):
@@ -255,25 +278,26 @@ class LearnYourPhoneApp(App):
         is_fixed = lambda uix: uix.do_translation == (False, False)
         self.victory = all(is_fixed(digit_uix) for digit_uix in self._digits)
 
-    def validate_answers(self, instance, *_args):
-        """Validate if instance is correctly place within a answer_box"""
+    def validate_answers(self, digit_instance, *_args):
+        """Validate if digit_instance is correctly place within a answer_box"""
         in_a_box = False
         for answer_box in self._answer_boxes:
-            if instance.collide_widget(answer_box):
-                if (instance.text == answer_box.digit and
-                        answer_box.current_answer is None):
-                    instance.do_translation = False
-                    answer_box.current_answer = instance
-                    answer_box.background_color = [0, 0, 0, 1]
+            if digit_instance.collide_widget(answer_box):
+                if (digit_instance.text == answer_box.digit and
+                        answer_box.correct_digit_uix is None):
+                    digit_instance.do_translation = False
+                    answer_box.correct_digit_uix = digit_instance
+                    solid_black = [0, 0, 0, 1]
+                    answer_box.background_color = solid_black
                     break
-                elif answer_box.current_answer is instance:
+                elif answer_box.correct_digit_uix is digit_instance:
                     # Already answered...
                     break
                 else:
                     in_a_box = True
         else:
             if in_a_box:
-                self.digit_in_bad_place(instance)
+                self.digit_in_bad_place(digit_instance)
                 # No need to check for victory
                 return
 
@@ -291,7 +315,8 @@ class LearnYourPhoneApp(App):
         """Enable sound but without a phone"""
         config.setdefaults(SETTINGS_SECTION,
                            {SETTINGS_KEY_PHONE: "",
-                            SETTINGS_KEY_SOUND: "1"})
+                            SETTINGS_KEY_SOUND: "1",
+                            SETTINGS_KEY_COLOR: "1"})
         return super(LearnYourPhoneApp, self).build_config(config)
 
     def build_settings(self, settings):
@@ -299,7 +324,7 @@ class LearnYourPhoneApp(App):
         jsondata = """[
                        {{"type": "phone",
                          "title": "Phone number",
-                         "desc": "The complete phone number you want to learn (digit only)",
+                         "desc": "The phone number you want to learn (digit only)",
                          "section": "{section}",
                          "key": "{key_number}"
                        }},
@@ -308,10 +333,17 @@ class LearnYourPhoneApp(App):
                          "section": "{section}",
                          "key": "{key_sound}",
                          "true": "auto"
+                       }},
+                       {{"type": "bool",
+                         "title": "Hint: color",
+                         "desc": "Use colors to hint at the correct order",
+                         "section": "{section}",
+                         "key": "{key_color}"
                        }}
                       ]""".format(section=SETTINGS_SECTION,
                                   key_number=SETTINGS_KEY_PHONE,
-                                  key_sound=SETTINGS_KEY_SOUND)
+                                  key_sound=SETTINGS_KEY_SOUND,
+                                  key_color=SETTINGS_KEY_COLOR)
         settings.register_type("phone", SettingsPhone)
         settings.add_json_panel('Learn your phone',
                                 self.config, data=jsondata)
@@ -323,9 +355,9 @@ class LearnYourPhoneApp(App):
             if key == SETTINGS_KEY_PHONE:
                 self.phone_number = value
             elif key == SETTINGS_KEY_SOUND:
-                sound_settings_value = self.config.get(SETTINGS_SECTION,
-                                                       SETTINGS_KEY_SOUND)
-                self.sound_enabled = true_boolean(sound_settings_value)
+                self.sound_enabled = true_boolean(value)
+            elif key == SETTINGS_KEY_COLOR:
+                self.hint_color = true_boolean(value)
         return super(LearnYourPhoneApp, self).on_config_change(config,
                                                                section,
                                                                key,
