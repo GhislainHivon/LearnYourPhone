@@ -61,6 +61,6 @@ This is a list of features that I will probably add after the contest end and if
     + Or on demand as a hint
 
 ## Official repository
-The official repository is the one on [bitbucket](https://bitbucket.org/GhislainHivon/learnyourphone).
+The official repository is the one with mercurial on [bitbucket](https://bitbucket.org/GhislainHivon/learnyourphone).
 
-The repository on github will be erased after the kivy contest
+The git repository will be erased after the kivy contest
